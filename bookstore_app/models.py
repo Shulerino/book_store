@@ -1,8 +1,8 @@
 from django.db import models
 from django.urls import reverse
 from django.contrib.auth.models import User
-from datetime import datetime, timedelta, timezone, date
-from django.core.validators import MinValueValidator, MaxValueValidator
+from datetime import timedelta, date
+from django.core.validators import MinValueValidator
 
 # Create your models here.
 
