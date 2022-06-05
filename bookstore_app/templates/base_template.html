@@ -1,0 +1,61 @@
+{% load static %}
+<html>
+    <head>
+        <title>
+            {%block title%}
+            {%endblock%}
+        </title>
+        
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        
+        <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+
+    </head>
+    <body>
+        <table width="100%" heigt="100%" border="1">
+            <tr>
+                <td width="20">
+                    <a href="{% url 'index' %}">На главную</a>
+                </td>
+                <td align="center">
+                    <h1>Книжный магазин</h1>
+                </td>
+                <td width="30" height="10">
+                {%block login%}
+                    {%if user.is_authenticated%}
+                        {%if user.is_staff%}
+                            <div><a href="/admin/">{{user.get_username}}</a></div>
+                        {%else%}
+                            {% for group in request.user.groups.all %}
+                                {%if group.name == 'clients'%}
+                                    <div><a href="{% url 'profile' %}">{{user.get_username}}</a></div>
+                                {%elif group.name == 'workers'%}
+                                    <div><a href="{% url 'worker' %}">{{user.get_username}}</a></div>
+                                {%endif%}
+                            {%endfor%}  
+                        {%endif%}
+                        <a href="{% url 'logout' %}">Выйти</a>
+                    {%else%}
+                        <a href="{% url 'login' %}">Войти</a>
+                        <a href="{% url 'register' %}">Регистрация</a>
+                    {%endif%}
+                {%endblock%}
+                </td>
+            </tr>
+            <tr>
+                <td height="100%" valign="top">
+                    <br>
+                    {%block navigate%}
+                    {%endblock%}
+                </td>
+                <td colspan="2">
+                    <br>
+                    {%block view%}
+                    {%endblock%}
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>

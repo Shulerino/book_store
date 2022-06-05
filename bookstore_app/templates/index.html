@@ -1,0 +1,85 @@
+{%extends "base_template.html"%}
+
+{%block title%}
+Index
+{%endblock%}
+
+
+{%block navigate%}
+    <form action="" method="post">
+    {% csrf_token %}
+        {{search_form.as_p}}<input type="submit" value="Найти" name="butsearchtitle"/>
+    </form>
+    <hr>
+    <form action="" method="post">
+    {% csrf_token %}
+        {{author_form.as_p}}
+        {{genre_form.as_p}}
+        <input type="submit" value="OK" name="butsearchauthor"/>
+    </form>
+    <hr>
+    <form action="" method="post">
+        {% csrf_token %}
+            {{language_form.as_p}}
+            <input type="submit" value="OK" name="butsearchlanguage"/>
+        </form>
+{%endblock%}
+
+{%block view%}
+    <div>
+        {%if books%}
+        <table border="1">
+            {%for item in books%}
+            <tr>
+                <td>
+                    {%if item.image%}
+                    <p><a href="{{item.get_absolute_url}}"><img src="{{item.image.url}}"></a></p>
+                    {%endif%}
+                </td>
+                <td>
+                    <p><a href="{{item.get_absolute_url}}">{{item.title}}</a></p>
+                    <p><b>Автор:</b> {{item.author}}</p>
+                    <p><b>Жанр:</b> 
+                        {%for i in item.genre.all%}
+                            {{i}}
+                        {%endfor%}</p>
+                    <p><b>Язык:</b> {{item.language}}</p>
+                    <p><b>Цена:</b> {{item.price}}</p>
+                    {%if item.count %} 
+                        <p>Оставшееся количество: {{item.count}}</p>   
+                    {%else%}
+                        <p>Нет в наличии</p>
+                    {%endif%}
+                {% for group in request.user.groups.all %}
+                    {% if group.name == 'workers' %} 
+                        <form action="{% url 'book_edit' %}" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" value={{item.id}} name="hidden_id"/>
+                            <input type="submit" value="Редактировать" name="butedit"/>
+                        </form>
+                    {%elif group.name == 'clients'%}
+                        {%if item.count %}
+                            <form action="{% url 'buybook' %}" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" value={{item.id}} name="hidden_id"/>
+                                <input type="submit" value="Купить" name="butbuy"/>
+                            </form>
+                            <form action="{% url 'rentbook' %}" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" value={{item.id}} name="hidden_id"/>
+                                <input type="submit" value="Взять почитать" name="rentbuy"/>
+                            </form>
+                        {%else%}
+                            <p>Нет в наличии</p>
+                        {%endif%}
+                    {%endif%}
+                {%endfor%}
+            </tr>
+            {%endfor%}
+              
+        </table>
+        {%else%}
+            <p>{{message}}</p>
+        {%endif%}
+    </div>
+{%endblock%}

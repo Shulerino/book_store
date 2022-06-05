@@ -1,0 +1,14 @@
+{%extends "base_template.html"%}
+
+{%block title%}
+login
+{%endblock%}
+
+
+{%block view%}
+<form method="post">
+    {% csrf_token %}
+    {{form.as_p}}
+    <input type="submit" value="Войти"/>
+    </form>
+{%endblock%}

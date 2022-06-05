@@ -1,0 +1,46 @@
+{%extends "base_template.html"%}
+
+{%block title%}
+worker
+{%endblock%}
+
+{%block navigate%}
+<form action="{% url 'user_update' %}">
+    {% csrf_token %}
+    <p><input type="submit" value="Редактировать профиль" name="butuserupdate"/></p>
+</form>
+<hr>
+<form action="{% url 'book_add' %}" method="post">
+    {% csrf_token %}
+    <input type="submit" value="Добавить книгу" name="butadd"/>
+</form>
+<form action="{% url 'duty_list' %}" method="post">
+    {% csrf_token %}
+    <input type="submit" value="Список должников" name="butduty"/>
+</form>
+<form action="{% url 'email' %}" method="post">
+    {% csrf_token %}
+    <input type="submit" value="Отправить сообщение" name="butemail"/>
+</form>
+{%endblock%}
+
+{%block view%}
+<div>
+    {%for item in books%}
+        <p><a href="{{item.get_absolute_url}}">{{item.title}}</a></p>
+    {%endfor%}
+    <div class="pagination" align="center">
+        <span class=""step-links">
+        {%if books.has_previous%}
+            <a href="?page={{books.previous_page_number}}">Предыдущая</a>
+        {%endif%}
+        <span class="current">
+            Страница {{books.number}} из {{books.paginator.num_pages}}
+        </span>
+        {%if books.has_next%}
+            <a href="?page={{books.next_page_number}}">Следующая</a>
+        {%endif%}
+        </span>
+    </div>
+</div>
+{%endblock%}

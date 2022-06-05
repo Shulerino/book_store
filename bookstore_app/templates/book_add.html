@@ -1,0 +1,26 @@
+{%extends "base_template.html"%}
+
+{%block title%}
+    book_add
+{%endblock%}
+
+{%block navigate%}
+<form action="{% url 'worker' %}">
+    <button type="submit">Назад</button>
+</form>
+{%endblock%}
+
+{%block view%}
+    <form action="" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {%for field in form%}
+            <p><b>{{field.label}}:</b><br>{{field}}</p>
+        {%endfor%}
+    <input type="submit" value="Сохранить" />
+    </form>
+    {%if messges%}
+        {%for message in messages%}
+            {{message}}
+        {%endfor%}
+    {%endif%}
+{%endblock%}

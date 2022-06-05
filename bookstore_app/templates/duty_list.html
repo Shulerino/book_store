@@ -1,0 +1,33 @@
+{%extends "base_template.html"%}
+
+{%block title%}
+Duty_list
+{%endblock%}
+
+
+{%block navigate%}
+<form action="{% url 'worker' %}">
+    <button type="submit">Назад</button>
+</form>
+{%endblock%}
+
+{%block view%}
+{%if dictionary%}
+    {%for key, value in dictionary.items%}
+        <p>{{key}}: </p>
+        <ul>
+            {%for val in value%}
+                {%if val.day_of_return > 0 %}
+                    <li><a href="{{val.book.get_absolute_url}}">{{val.book}}</a>    вернуть через {{val.day_of_return}} д.</li>
+                {%elif val.day_of_return == 0 %}
+                    <li><a href="{{val.book.get_absolute_url}}">{{val.book}}</a>    вернуть сегодня</li>
+                {%elif val.day_of_return < 0 %}
+                    <li><a href="{{val.book.get_absolute_url}}">{{val.book}}</a>    <font color="red">просрочена!</font></li>
+                {%endif%}
+            {%endfor%}
+        </ul>
+    {%endfor%}
+{%else%}
+        <p>Должников нет</p>
+{%endif%}
+{%endblock%}

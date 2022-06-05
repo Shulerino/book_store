@@ -1,0 +1,43 @@
+{%extends "base_template.html"%}
+
+{%block title%}
+book_info
+{%endblock%}
+
+{%block view%} 
+    <div>
+        <b>{{book.title}}</b>
+    </div>
+    {%if book.image%}
+    <div>
+        <img src="{{book.image.url}}">
+    </div>
+    {%endif%}
+    <div>
+        {{book.summary}}
+    </div>
+    {% for group in request.user.groups.all %}
+        {% if group.name == 'workers' %} 
+            <form action="{% url 'book_edit' %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" value={{book.id}} name="hidden_id"/>
+                <input type="submit" value="Редактировать" name="butedit"/>
+            </form>
+        {%elif group.name == 'clients'%}
+            {%if book.count %}
+                <form action="{% url 'buybook' %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" value={{book.id}} name="hidden_id"/>
+                    <input type="submit" value="Купить" name="butbuy"/>
+                </form>
+                <form action="{% url 'rentbook' %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" value={{book.id}} name="hidden_id"/>
+                    <input type="submit" value="Взять почитать" name="rentbuy"/>
+                </form>
+            {%else%}
+                <p>Нет в наличии</p>
+            {%endif%}
+        {%endif%}
+    {%endfor%}
+{%endblock%}

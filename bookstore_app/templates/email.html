@@ -1,0 +1,25 @@
+{%extends "base_template.html"%}
+
+{%block title%}
+    email
+{%endblock%}
+
+{%block navigate%}
+<form action="{% url 'worker' %}">
+    <button type="submit">Назад</button>
+</form>
+{%endblock%}
+
+{%block view%}
+    <form action="" method="post">
+        {% csrf_token %}
+        {%for field in form%}
+            <p><b>{{field.label}}:</b><br>{{field}}</p>
+        {%endfor%}
+    <input type="submit" value="Отправить" />
+    {%if messges%}
+        {%for message in messages%}
+            {{message}}
+        {%endfor%}
+    {%endif%}
+{%endblock%}

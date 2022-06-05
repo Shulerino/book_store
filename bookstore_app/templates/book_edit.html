@@ -1,0 +1,31 @@
+{%extends "base_template.html"%}
+
+{%block title%}
+    book_edit
+{%endblock%}
+
+{%block navigate%}
+<form action="{{book.get_absolute_url}}">
+    <button type="submit">Назад</button>
+</form>
+{%endblock%}
+
+{%block view%}
+    <form action="" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {%for field in form%}
+            <p><b>{{field.label}}:</b><br>{{field}}</p>
+        {%endfor%}
+    <input type="submit" value="Сохранить" />
+    </form>
+    <form action="{% url 'book_delete' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" value={{book.id}} name="hidden_id"/>
+        <input type="submit" value="Удалить книгу" name="bookdelete"/>
+    </form>
+    {%if messages%}
+        {%for message in messages%}
+            {{message}}
+        {%endfor%}
+    {%endif%}
+{%endblock%}
