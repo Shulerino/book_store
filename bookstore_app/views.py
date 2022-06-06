@@ -11,6 +11,7 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.contrib.auth.models import User, Group
 from django.core.mail import send_mail, BadHeaderError
 from django.contrib.auth.decorators import login_required
+from django import forms
 
 # Create your views here.
 
@@ -76,22 +77,45 @@ class BookInfo(generic.DetailView):
 class BookEdit(generic.UpdateView):
     model=Book
     template_name="book_edit.html"
-    fields = ['title', 'image', 'summary', 'author', 'genre', 'language', 'count', 'price']
-      
+    form_class=forms.modelform_factory(
+        model=Book,
+        fields='__all__',
+        error_messages={
+            'title': {'required': 'Поле обязательно для заполнения'},
+            'author': {'required': 'Поле обязательно для заполнения'},
+            'genre': {'required': 'Поле обязательно для заполнения'},
+            'language': {'required': 'Поле обязательно для заполнения'},
+            'price': {'required': 'Поле обязательно для заполнения',
+                    'min_value': 'Некорректное значение!'},
+            'count': {'required': 'Поле обязательно для заполнения',
+                'min_value': 'Некорректное значение!'},
+        })
+
     def form_valid(self, form):
         instance=form.save()
         instance.save()
         return HttpResponseRedirect(reverse('book_info', kwargs={'pk': instance.id}))
 
     def form_invalid(self, form):
-        messages.error(self.request, form.errors)
         return super().form_invalid(form)
 
 
 class BookAdd(generic.CreateView):
     model=Book
     template_name="book_add.html"
-    fields = ['title', 'image', 'summary', 'author', 'genre', 'language', 'count', 'price']
+    form_class=forms.modelform_factory(
+        model=Book,
+        fields='__all__',
+        error_messages={
+            'title': {'required': 'Поле обязательно для заполнения'},
+            'author': {'required': 'Поле обязательно для заполнения'},
+            'genre': {'required': 'Поле обязательно для заполнения'},
+            'language': {'required': 'Поле обязательно для заполнения'},
+            'price': {'required': 'Поле обязательно для заполнения',
+                    'min_value': 'Некорректное значение!'},
+            'count': {'required': 'Поле обязательно для заполнения',
+                'min_value': 'Некорректное значение!'},
+        })
 
     def form_valid(self, form):
         instance=form.save()
@@ -105,9 +129,12 @@ class BookAdd(generic.CreateView):
 class LoginUser(LoginView):
     template_name="login.html"
     form_class=LoginForm
-
+    
     def get_success_url(self):
         return reverse_lazy(index)
+
+    def form_invalid(self, form):
+        return super().form_invalid(form)
 
 
 class RegisterUser(generic.CreateView):

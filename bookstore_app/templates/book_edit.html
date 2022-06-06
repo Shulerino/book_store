@@ -14,7 +14,12 @@
     <form action="" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {%for field in form%}
-            <p><b>{{field.label}}:</b><br>{{field}}</p>
+            <p><b>{{field.label}}:</b><br>{{field}}
+        {%if field.errors%}
+            {%for error in field.errors%}
+                <font color="red">{{error}}</font>
+            {%endfor%}
+        {%endif%}</p>
         {%endfor%}
     <input type="submit" value="Сохранить" />
     </form>
@@ -23,9 +28,4 @@
         <input type="hidden" value={{book.id}} name="hidden_id"/>
         <input type="submit" value="Удалить книгу" name="bookdelete"/>
     </form>
-    {%if messages%}
-        {%for message in messages%}
-            {{message}}
-        {%endfor%}
-    {%endif%}
 {%endblock%}

@@ -55,8 +55,8 @@ class Book (models.Model):
     author=models.ForeignKey(Author, on_delete=models.SET_NULL, null=True, verbose_name="Автор")
     genre=models.ManyToManyField(Genre, verbose_name="Жанр")
     language=models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, verbose_name="Язык")
-    price=models.IntegerField(default=50, validators=[MinValueValidator(0)], null=True, verbose_name="Стоимость")
-    count=models.IntegerField(default=10, validators=[MinValueValidator(0)], null=True, verbose_name="Количество")
+    price=models.IntegerField(validators=[MinValueValidator(0)], null=True, verbose_name="Стоимость")
+    count=models.IntegerField(validators=[MinValueValidator(0)], null=True, verbose_name="Количество")
 
     def __str__(self):
         return self.title

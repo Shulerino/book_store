@@ -20,6 +20,10 @@ class LanguageForm(forms.Form):
 class LoginForm(AuthenticationForm):
     username=forms.CharField(max_length=50, label="Логин", required=False)
     password=forms.CharField(max_length=20, label="Пароль", required=False, widget=forms.PasswordInput)
+    error_messages = {
+        'invalid_login': 'Неправильный логин или пароль',
+        'inactive': 'Аккаунт отключен',
+    }
 
 class RegisterForm(UserCreationForm):
     username=forms.CharField(max_length=50, label="Логин", required=True)

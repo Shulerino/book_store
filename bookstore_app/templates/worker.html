@@ -10,15 +10,15 @@ worker
     <p><input type="submit" value="Редактировать профиль" name="butuserupdate"/></p>
 </form>
 <hr>
-<form action="{% url 'book_add' %}" method="post">
+<form action="{% url 'book_add' %}" method="get">
     {% csrf_token %}
     <input type="submit" value="Добавить книгу" name="butadd"/>
 </form>
-<form action="{% url 'duty_list' %}" method="post">
+<form action="{% url 'duty_list' %}" method="get">
     {% csrf_token %}
     <input type="submit" value="Список должников" name="butduty"/>
 </form>
-<form action="{% url 'email' %}" method="post">
+<form action="{% url 'email' %}" method="get">
     {% csrf_token %}
     <input type="submit" value="Отправить сообщение" name="butemail"/>
 </form>
