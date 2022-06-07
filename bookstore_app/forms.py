@@ -1,7 +1,7 @@
 from email.policy import default
 from django import forms
 from .models import Author, Genre, Language
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, UserChangeForm
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, PasswordChangeForm
 from django.contrib.auth.models import User
 
 
@@ -26,17 +26,59 @@ class LoginForm(AuthenticationForm):
     }
 
 class RegisterForm(UserCreationForm):
-    username=forms.CharField(max_length=50, label="Логин", required=True)
-    password1=forms.CharField(max_length=20, label="Пароль", required=True, widget=forms.PasswordInput)
-    password2=forms.CharField(max_length=20, label="Повторите пароль", required=True, widget=forms.PasswordInput)
-    first_name=forms.CharField(max_length=50, label="Имя пользователя", required=False)
-    last_name=forms.CharField(max_length=50, label="Фамилия пользователя", required=False)
-    email_address=forms.EmailField(label="E-mail", required=False)
+    username=forms.CharField(max_length=50, label="Логин", error_messages = {
+        'unique': 'Пользователь с таким именем уже существует',
+        'max_length': 'Слишком длинный логин',
+    })
+    password1=forms.CharField(max_length=50, label="Пароль", widget=forms.PasswordInput, error_messages = {
+        'max_length': 'Слишком большой пароль',
+    })
+    password2=forms.CharField(max_length=20, label="Повторите пароль", widget=forms.PasswordInput, error_messages = {
+        'max_length': 'Слишком большой пароль',
+    })
+    first_name=forms.CharField(max_length=30, label="Имя пользователя", required=False, error_messages = {
+        'max_length': 'Слишком длинное имя',
+    })
+    last_name=forms.CharField(max_length=150, label="Фамилия пользователя", required=False, error_messages = {
+        'max_length': 'Слишком большая фамилия',
+    })
+    email_address=forms.EmailField(label="E-mail", error_messages = {
+        'invalid': 'Некорректный адрес',
+        'required': 'Поле обязательно для заполнения'
+    })
+    error_messages = {
+        'unique': 'Пользователь с таким именем уже существует',
+        'password_mismatch': 'Пароли не совпадают',
+    }
+
+class PasswordForm(PasswordChangeForm):
+    old_password=forms.CharField(max_length=50, label="Старый пароль", strip=False, widget=forms.PasswordInput, error_messages = {
+        'max_length': 'Слишком большой пароль',
+    })
+    new_password1=forms.CharField(max_length=50, label="Новый пароль", strip=False, widget=forms.PasswordInput, error_messages = {
+        'max_length': 'Слишком большой пароль',
+    })
+    new_password2=forms.CharField(max_length=20, label="Повторите новый пароль", strip=False, widget=forms.PasswordInput, error_messages = {
+        'max_length': 'Слишком большой пароль',
+    })
+    error_messages = {
+        'password_incorrect': "Неправильный старый пароль",
+        'password_mismatch': "Новые пароли не совпадают",
+        'password_too_common': "Слишком простой пароль",
+        'password_too_short': "Слишком короткий пароль. Должно быть минимум 8 символов"
+    }
 
 class UserUpdateForm(forms.Form):
-    first_name=forms.CharField(max_length=50, label="Имя пользователя", required=True)
-    last_name=forms.CharField(max_length=50, label="Фамилия пользователя", required=True)
-    email_address=forms.EmailField(label="E-mail", required=True)
+    first_name=forms.CharField(max_length=30, label="Имя пользователя", required=False, error_messages = {
+        'max_length': 'Слишком длинное имя',
+    })
+    last_name=forms.CharField(max_length=150, label="Фамилия пользователя", required=False, error_messages = {
+        'max_length': 'Слишком большая фамилия',
+    })
+    email_address=forms.EmailField(label="E-mail", error_messages = {
+        'invalid': 'Некорректный адрес',
+        'required': 'Поле обязательно для заполнения'
+    })
 
 class EmailForm(forms.Form):
     address=forms.ModelMultipleChoiceField(queryset=User.objects.all(), label="Выеберете адресата")

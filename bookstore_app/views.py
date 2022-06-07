@@ -3,14 +3,15 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy, reverse
 from .models import Author, Genre, Language, Book, Buy, Rent, UserMoney
-from .forms import GenreForm, AuthorForm, LoginForm, LanguageForm, RegisterForm, SearchForm, UserUpdateForm, EmailForm, MoneyPlusForm
+from .forms import GenreForm, AuthorForm, LoginForm, LanguageForm, RegisterForm, SearchForm, UserUpdateForm, EmailForm, MoneyPlusForm, PasswordForm
 from django.views import generic
 from django.contrib import auth, messages
-from django.contrib.auth.views import LoginView
+from django.contrib.auth.views import LoginView, PasswordChangeView
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.contrib.auth.models import User, Group
 from django.core.mail import send_mail, BadHeaderError
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import update_session_auth_hash
 from django import forms
 
 # Create your views here.
@@ -147,7 +148,23 @@ class RegisterUser(generic.CreateView):
         auth.login(self.request, user)
         UserMoney.objects.create(user=self.request.user, money=0)
         return redirect("index")
+    
+    def form_invalid(self, form):
+        return super().form_invalid(form)
 
+class PasswordChange(PasswordChangeView):
+    template_name="password_change.html"
+    form_class=PasswordForm
+
+    def form_valid(self, form):
+        user=form.save()
+        update_session_auth_hash(self.request, user)
+        messages.success(self.request, "Пароль успешно изменен")
+        return HttpResponseRedirect(reverse('password_change'))
+
+    def form_invalid(self, form):
+        return super().form_invalid(form)
+        
 
 @login_required(login_url='login')
 def updateuser(request):
@@ -167,12 +184,12 @@ def updateuser(request):
             user.save()
             messages.success(request, 'Профиль изменен')
         else:
-            messages.error(request, 'Ошибка редкатирования')
+            messages.info(request, 'Ошибка редкатирования')
           
     return render (request, "user_update.html", 
-    context={
-    "form": form,
-    })
+        context={
+        "form": form,
+        })
 
 
 @login_required(login_url='login')

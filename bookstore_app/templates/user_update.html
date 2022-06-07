@@ -9,9 +9,19 @@
     <form action="" method="post">
         {% csrf_token %}
         {%for field in form%}
-            <p><b>{{field.label}}:</b><br>{{field}}</p>
+            <p><b>{{field.label}}:</b><br>{{field}}
+                {%if field.errors%}
+                    {%for error in field.errors%}
+                        <font color="red">{{error}}</font>
+                    {%endfor%}
+                {%endif%}
+            </p>
         {%endfor%}
     <input type="submit" value="Изменить" />    
+    </form>
+    <form action="{% url 'password_change' %}">
+        {% csrf_token %}
+        <p><input type="submit" value="Изменить пароль" name="butpasschange"/></p>
     </form> 
     {%for message in messages%}
         {{message}}

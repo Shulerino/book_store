@@ -15,11 +15,11 @@
         {% csrf_token %}
         {%for field in form%}
             <p><b>{{field.label}}:</b><br>{{field}}
-        {%if field.errors%}
-            {%for error in field.errors%}
-                <font color="red">{{error}}</font>
-            {%endfor%}
-        {%endif%}</p>
+            {%if field.errors%}
+                {%for error in field.errors%}
+                    <font color="red">{{error}}</font>
+                {%endfor%}
+            {%endif%}</p>
         {%endfor%}
     <input type="submit" value="Сохранить" />
     </form>
