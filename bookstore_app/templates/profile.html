@@ -24,9 +24,9 @@ profile
     <h3>Мои покупки:</h3>
         {%if buys%}
             {%for item in buys%} 
-            <form action="{% url 'buydelete' %}" method="post">
+            <form action="{% url 'buydelete' item.id%}" method="post">
                 {% csrf_token %}
-                <p><a href="{{item.book.get_absolute_url}}">{{item.book}}</a>    <input type="submit" value="Удалить" name="butdelete"/><input type="hidden" value="{{item.id}}" name="hidden_id"/></p>
+                <p><a href="{{item.book.get_absolute_url}}">{{item.book}}</a>    <input type="submit" value="Удалить" name="butdelete"/></p>
             </form>
             {%endfor%}
         {%else%}
@@ -36,14 +36,14 @@ profile
         <h3>Мои взятые книги:</h3>
         {%if rents%}
             {%for item in rents%} 
-            <form action="{% url 'bookreturn' %}" method="post">
+            <form action="{% url 'bookreturn' item.id%}" method="post">
                 {% csrf_token %}
                 {%if item.day_of_return > 0%}
-                    <p><a href="{{item.book.get_absolute_url}}">{{item.book}}</a>    (осталось {{item.day_of_return}} дней)  <input type="submit" value="Вернуть" name="butreturn"/><input type="hidden" value="{{item.id}}" name="hidden_id"/></p>
+                    <p><a href="{{item.book.get_absolute_url}}">{{item.book}}</a>    (осталось {{item.day_of_return}} дней)  <input type="submit" value="Вернуть" name="butreturn"/></p>
                 {%elif item.day_of_return == 0%}
-                    <p><a href="{{item.book.get_absolute_url}}">{{item.book}}</a>    (вернуть сегодня)  <input type="submit" value="Вернуть" name="butreturn"/><input type="hidden" value="{{item.id}}" name="hidden_id"/></p>
+                    <p><a href="{{item.book.get_absolute_url}}">{{item.book}}</a>    (вернуть сегодня)  <input type="submit" value="Вернуть" name="butreturn"/></p>
                 {%elif item.day_of_return < 0%}
-                    <p><a href="{{item.book.get_absolute_url}}">{{item.book}}</a>    <font color="red">просрочена!</font>  <input type="submit" value="Вернуть" name="butreturn"/><input type="hidden" value="{{item.id}}" name="hidden_id"/></p>
+                    <p><a href="{{item.book.get_absolute_url}}">{{item.book}}</a>    <font color="red">просрочена!</font>  <input type="submit" value="Вернуть" name="butreturn"/></p>
                 {%endif%}
             </form>
             {%endfor%}

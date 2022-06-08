@@ -17,7 +17,8 @@
         <table width="100%" heigt="100%" border="1">
             <tr>
                 <td width="20">
-                    <a href="{% url 'index' %}">На главную</a>
+                    <a href="{% url 'index' %}">На главную</a><br>
+                    <a href="{{request.META.HTTP_REFERER}}">Назад</a>
                 </td>
                 <td align="center">
                     <h1>Книжный магазин</h1>

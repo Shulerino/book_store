@@ -2,16 +2,17 @@ from re import template
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy, reverse
-from .models import Author, Genre, Language, Book, Buy, Rent, UserMoney
-from .forms import GenreForm, AuthorForm, LoginForm, LanguageForm, RegisterForm, SearchForm, UserUpdateForm, EmailForm, MoneyPlusForm, PasswordForm
+from .models import *
+from .forms import *
 from django.views import generic
 from django.contrib import auth, messages
 from django.contrib.auth.views import LoginView, PasswordChangeView
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.contrib.auth.models import User, Group
 from django.core.mail import send_mail, BadHeaderError
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django import forms
 
 # Create your views here.
@@ -75,7 +76,10 @@ class BookInfo(generic.DetailView):
     template_name="book_info.html"
 
 
-class BookEdit(generic.UpdateView):
+class BookEdit(PermissionRequiredMixin, generic.UpdateView):
+    raise_exception=True
+    permission_required='bookstore_app.change_book'
+
     model=Book
     template_name="book_edit.html"
     form_class=forms.modelform_factory(
@@ -101,7 +105,10 @@ class BookEdit(generic.UpdateView):
         return super().form_invalid(form)
 
 
-class BookAdd(generic.CreateView):
+class BookAdd(PermissionRequiredMixin, generic.CreateView):
+    raise_exception=True
+    permission_required='bookstore_app.add_book'
+
     model=Book
     template_name="book_add.html"
     form_class=forms.modelform_factory(
@@ -152,7 +159,9 @@ class RegisterUser(generic.CreateView):
     def form_invalid(self, form):
         return super().form_invalid(form)
 
-class PasswordChange(PasswordChangeView):
+class PasswordChange(LoginRequiredMixin, PasswordChangeView):
+    raise_exception=True
+    
     template_name="password_change.html"
     form_class=PasswordForm
 
@@ -164,7 +173,7 @@ class PasswordChange(PasswordChangeView):
 
     def form_invalid(self, form):
         return super().form_invalid(form)
-        
+
 
 @login_required(login_url='login')
 def updateuser(request):
@@ -226,9 +235,9 @@ def workeruser(request):
         })
 
 @login_required(login_url='login')
-def buybook(request):
+def buybook(request, pk):
     if request.method=='POST':
-        book=Book.objects.get(id=request.POST["hidden_id"])
+        book=Book.objects.get(id=pk)
         buy=Buy.objects.create(user=request.user, book=book)
         money=UserMoney.objects.get(user=request.user)
         if money.money >= book.price:
@@ -242,40 +251,33 @@ def buybook(request):
             return redirect ("money_plus", message="Недостаточно средств!")
 
 @login_required(login_url='login')
-def rentbook(request):
+def rentbook(request, pk):
     if request.method=='POST':
-        book=Book.objects.get(id=request.POST["hidden_id"])
+        book=Book.objects.get(id=pk)
         rent=Rent.objects.create(user=request.user, book=book)
         book.count-=1
         rent.save()
         book.save()
         return redirect ("profile")
 
-@login_required(login_url='login')
-def bookedit(request):
-    if request.method=='POST':
-        book_id=request.POST["hidden_id"]
-        return redirect('book_update', pk=book_id)
 
 @login_required(login_url='login')
-def bookdelete(request):
+@permission_required('bookstore_app.delete_book', raise_exception=True)
+def bookdelete(request, pk):
      if request.method=='POST':
-        book_id=request.POST["hidden_id"]
-        Book.objects.get(id=book_id).delete()
+        Book.objects.get(id=pk).delete()
         return redirect ("worker")
 
 @login_required(login_url='login')
-def buydelete(request):
+def buydelete(request, pk):
     if request.method=='POST':
-        buy_id=request.POST["hidden_id"]
-        Buy.objects.get(id=buy_id).delete()
+        Buy.objects.get(id=pk).delete()
         return redirect ("profile")
 
 @login_required(login_url='login')
-def bookreturn(request):
+def bookreturn(request, pk):
     if request.method=='POST':
-        rent_id=request.POST["hidden_id"]
-        rent=Rent.objects.get(id=rent_id)
+        rent=Rent.objects.get(id=pk)
         book=Book.objects.get(id=rent.book.id)
         book.count+=1
         rent.delete()

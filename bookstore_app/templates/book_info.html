@@ -18,21 +18,18 @@ book_info
     </div>
     {% for group in request.user.groups.all %}
         {% if group.name == 'workers' %} 
-            <form action="{% url 'book_edit' %}" method="post">
+            <form action="{% url 'book_update' book.id %}" method="get">
                 {% csrf_token %}
-                <input type="hidden" value={{book.id}} name="hidden_id"/>
                 <input type="submit" value="Редактировать" name="butedit"/>
             </form>
         {%elif group.name == 'clients'%}
             {%if book.count %}
-                <form action="{% url 'buybook' %}" method="post">
+                <form action="{% url 'buybook' book.id %}" method="post">
                     {% csrf_token %}
-                    <input type="hidden" value={{book.id}} name="hidden_id"/>
                     <input type="submit" value="Купить" name="butbuy"/>
                 </form>
-                <form action="{% url 'rentbook' %}" method="post">
+                <form action="{% url 'rentbook' book.id %}" method="post">
                     {% csrf_token %}
-                    <input type="hidden" value={{book.id}} name="hidden_id"/>
                     <input type="submit" value="Взять почитать" name="rentbuy"/>
                 </form>
             {%else%}

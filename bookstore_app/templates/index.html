@@ -52,21 +52,18 @@ Index
                     {%endif%}
                 {% for group in request.user.groups.all %}
                     {% if group.name == 'workers' %} 
-                        <form action="{% url 'book_edit' %}" method="post">
+                        <form action="{% url 'book_update' item.id %}" method="get">
                             {% csrf_token %}
-                            <input type="hidden" value={{item.id}} name="hidden_id"/>
                             <input type="submit" value="Редактировать" name="butedit"/>
                         </form>
                     {%elif group.name == 'clients'%}
                         {%if item.count %}
-                            <form action="{% url 'buybook' %}" method="post">
+                            <form action="{% url 'buybook' item.id%}" method="post">
                                 {% csrf_token %}
-                                <input type="hidden" value={{item.id}} name="hidden_id"/>
                                 <input type="submit" value="Купить" name="butbuy"/>
                             </form>
-                            <form action="{% url 'rentbook' %}" method="post">
+                            <form action="{% url 'rentbook' item.id%}" method="post">
                                 {% csrf_token %}
-                                <input type="hidden" value={{item.id}} name="hidden_id"/>
                                 <input type="submit" value="Взять почитать" name="rentbuy"/>
                             </form>
                         {%else%}
