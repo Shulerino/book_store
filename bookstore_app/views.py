@@ -60,6 +60,7 @@ def index(request):
     if result==False:
         message="Книги не найдены"
     
+
     return render (request, "index.html", 
         context={
         "books": books,
@@ -67,13 +68,20 @@ def index(request):
         "genre_form": genre_form,
         "language_form": language_form,
         "search_form": search_form,
-        "message": message
+        "message": message,
         })
 
 
 class BookInfo(generic.DetailView):
     model=Book
     template_name="book_info.html"
+
+    def get_context_data(self, **kwargs):
+        context=super(BookInfo, self).get_context_data(**kwargs)
+        num_visits=self.request.session.get('num_visits', 0)
+        self.request.session['num_visits'] = num_visits+1
+        context['num_visits']=num_visits
+        return context
 
 
 class BookEdit(PermissionRequiredMixin, generic.UpdateView):

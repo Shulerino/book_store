@@ -129,3 +129,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 TEMPLATE_CONTEXT_PROCESSORS = 'django.core.context_processors.request'
+
+CSRF_TRUSTED_ORIGINS = ["http://localhost:1337"]
+

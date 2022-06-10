@@ -67,9 +67,6 @@ class Book (models.Model):
     def get_absolute_url(self):
         return reverse ("book_info", args=[str(self.id)])
 
-    def get_update_url(self):
-        return reverse ("book_update", args=[str(self.id)])
-
 
 class Buy (models.Model):
     user=models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
