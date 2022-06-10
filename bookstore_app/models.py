@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 from datetime import timedelta, date
 from django.core.validators import MinValueValidator
+from django.core.exceptions import ValidationError
 
 # Create your models here.
 
@@ -14,12 +15,11 @@ class UserMoney(models.Model):
         return self.user.username + " (баланс: {0})".format(str(self.money))
 
 class Author (models.Model):
-    surname=models.CharField(max_length=50)
-    name=models.CharField(max_length=50)
-    patronymic=models.CharField(max_length=50, blank=True, null=True)
-    date_of_birth=models.DateField(blank=True, null=True)
-    date_of_death=models.DateField(blank=True, null=True)
-    country=models.CharField(max_length=50)
+    surname=models.CharField(max_length=50, verbose_name="Фамилия")
+    name=models.CharField(max_length=50, verbose_name="Имя")
+    patronymic=models.CharField(max_length=50, blank=True, null=True, verbose_name="Отчество")
+    date_of_birth=models.DateField(blank=True, default='1900-01-01', verbose_name="Дата рождения")
+    date_of_death=models.DateField(blank=True, null=True, verbose_name="Дата смерти")
 
     def __str__(self):
         if self.patronymic == None:
@@ -29,6 +29,10 @@ class Author (models.Model):
 
     class Meta:
         ordering=["surname"]
+
+    def clean(self, *args, **kwargs):
+        if self.date_of_death < self.date_of_birth:
+            raise ValidationError('Дата смерти не может быть раньше даты рождения', code='invalid_death')
 
 class Genre (models.Model):
     genre=models.CharField(max_length=50)

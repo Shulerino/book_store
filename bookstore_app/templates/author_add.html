@@ -1,0 +1,28 @@
+{%extends "base_template.html"%}
+
+{%block title%}
+    author_add
+{%endblock%}
+
+{%block navigate%}
+{%endblock%}
+
+{%block view%}
+    <form action="" method="post">
+        {% csrf_token %}
+        {%for field in form%}
+            <p><b>{{field.label}}:</b><br>{{field}}
+            {%if field.errors%}
+                {%for error in field.errors%}
+                    <font color="red">{{error}}</font>
+                {%endfor%}
+            {%endif%}</p>
+        {%endfor%}
+    <input type="submit" value="Сохранить" />
+    </form>
+{%if form.errors%}
+    {%for error in form.non_field_errors%}
+        <p><font color="red">{{error}}</font></p>
+    {%endfor%}
+{%endif%}
+{%endblock%}

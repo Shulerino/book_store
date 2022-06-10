@@ -142,6 +142,39 @@ class BookAdd(PermissionRequiredMixin, generic.CreateView):
         messages.error(self.request, form.errors)
         return super().form_invalid(form)
 
+class AuthorAdd(PermissionRequiredMixin, generic.CreateView):
+    raise_exception=True
+    permission_required='bookstore_app.add_author'
+
+    model=Author
+    template_name='author_add.html'
+
+    def get_form(self):
+        form = super(AuthorAdd, self).get_form()
+        form.fields['date_of_birth'].widget = forms.DateInput(attrs={'type': 'date'})
+        form.fields['date_of_death'].widget = forms.DateInput(attrs={'type': 'date'})
+        return form
+    
+    form_class=forms.modelform_factory(
+        model=Author,
+        fields='__all__',
+        error_messages={
+            'surname': {'required': 'Поле обязательно для заполнения'},
+            'name': {'required': 'Поле обязательно для заполнения'},
+            'date_of_birth': {'required': 'Поле обязательно для заполнения',
+                            'invalid': 'Некорректная дата'},
+            'date_of_death': {'invalid': 'Некорректная дата'},
+        })
+
+    def form_valid(self, form):
+        instance=form.save()
+        instance.save()
+        return redirect ("worker")
+    
+    def form_invalid(self, form):
+        messages.error(self.request, form.errors)
+        return super().form_invalid(form)
+
 class LoginUser(LoginView):
     template_name="login.html"
     form_class=LoginForm
