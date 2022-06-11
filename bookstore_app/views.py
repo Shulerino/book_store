@@ -99,9 +99,11 @@ class BookEdit(PermissionRequiredMixin, generic.UpdateView):
             'genre': {'required': 'Поле обязательно для заполнения'},
             'language': {'required': 'Поле обязательно для заполнения'},
             'price': {'required': 'Поле обязательно для заполнения',
-                    'min_value': 'Некорректное значение!'},
+                    'min_value': 'Некорректное значение',
+                    'max_value': 'Слишком большое число'},
             'count': {'required': 'Поле обязательно для заполнения',
-                'min_value': 'Некорректное значение!'},
+                    'min_value': 'Некорректное значение',
+                    'max_value': 'Слишком большое число'},
         })
 
     def form_valid(self, form):
@@ -128,9 +130,11 @@ class BookAdd(PermissionRequiredMixin, generic.CreateView):
             'genre': {'required': 'Поле обязательно для заполнения'},
             'language': {'required': 'Поле обязательно для заполнения'},
             'price': {'required': 'Поле обязательно для заполнения',
-                    'min_value': 'Некорректное значение!'},
+                    'min_value': 'Некорректное значение',
+                    'max_value': 'Слишком большое число'},
             'count': {'required': 'Поле обязательно для заполнения',
-                'min_value': 'Некорректное значение!'},
+                    'min_value': 'Некорректное значение',
+                    'max_value': 'Слишком большое число'},
         })
 
     def form_valid(self, form):

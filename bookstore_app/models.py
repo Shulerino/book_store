@@ -2,14 +2,14 @@ from django.db import models
 from django.urls import reverse
 from django.contrib.auth.models import User
 from datetime import timedelta, date
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 
 # Create your models here.
 
 class UserMoney(models.Model):
     user=models.OneToOneField(User, on_delete=models.CASCADE)
-    money=models.IntegerField(default=0, validators=[MinValueValidator(0)], null=True, verbose_name="Баланс")
+    money=models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(2147483647)], null=True, verbose_name="Баланс")
 
     def __str__(self):
         return self.user.username + " (баланс: {0})".format(str(self.money))
@@ -59,8 +59,8 @@ class Book (models.Model):
     author=models.ForeignKey(Author, on_delete=models.SET_NULL, null=True, verbose_name="Автор")
     genre=models.ManyToManyField(Genre, verbose_name="Жанр")
     language=models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, verbose_name="Язык")
-    price=models.IntegerField(validators=[MinValueValidator(0)], null=True, verbose_name="Стоимость")
-    count=models.IntegerField(validators=[MinValueValidator(0)], null=True, verbose_name="Количество")
+    price=models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(2147483647)], null=True, verbose_name="Стоимость")
+    count=models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(2147483647)], null=True, verbose_name="Количество")
 
     def __str__(self):
         return self.title

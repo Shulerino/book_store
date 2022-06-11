@@ -86,4 +86,8 @@ class EmailForm(forms.Form):
     message=forms.CharField(max_length=1000, label="Сообщение", widget=forms.Textarea)
 
 class MoneyPlusForm(forms.Form):
-    plus=forms.IntegerField(min_value=0, label="Введите сумму")
+    plus=forms.IntegerField(min_value=0, max_value=2147483647, label="Введите сумму", error_messages={
+                    'required': 'Поле обязательно для заполнения',
+                    'min_value': 'Некорректное значение',
+                    'max_value': 'Слишком большое число'
+        })
