@@ -12,7 +12,7 @@ profile
     <p><input type="submit" value="Редактировать профиль" name="butuserupdate"/></p>
 </form>
 <hr>
-<form action="{% url 'money_plus' %}">
+<form action="{% url 'money_plus' %}" method="get">
     {% csrf_token %}
     <p><b>Ваш баланс:</b></p>
     {{money.money}}

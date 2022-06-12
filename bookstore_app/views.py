@@ -371,17 +371,14 @@ def email(request):
     )   
 
 @login_required(login_url='login')
-def money_plus(request, message=''):
+def money_plus(request):
     money=UserMoney.objects.get(user=request.user)
     form=MoneyPlusForm(request.POST)
     if request.method=='POST':
         if form.is_valid():
             plus=form.cleaned_data["plus"]
+            if plus==None:
+                plus=0
             money.money+=plus
             money.save()
-    return render (request, "money_plus.html",
-        context={  
-        "money": money,
-        "form": form,
-        "message": message,
-        })
+        return redirect ("profile")

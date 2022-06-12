@@ -2,6 +2,14 @@ body {
     background-color:rgb(255, 255, 255);
 }
 
-h1 {
-    color:rgb(43, 7, 247)
+
+
+img {
+    width: 185px;
+    height: 255px
 }
+
+td {
+    padding: 5px;
+}
+

@@ -3,6 +3,7 @@ from django import forms
 from .models import Author, Genre, Language
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, PasswordChangeForm
 from django.contrib.auth.models import User
+from django.forms import widgets
 
 
 class SearchForm(forms.Form):
@@ -15,7 +16,7 @@ class AuthorForm(forms.Form):
     author_list=forms.ModelChoiceField(Author.objects.all(), label="Выберете автора", required=False)
 
 class LanguageForm(forms.Form):
-    language_list=forms.ModelMultipleChoiceField(queryset=Language.objects.all(), label="Выберете язык", required=False)
+    language_list=forms.ModelMultipleChoiceField(queryset=Language.objects.all(), label="Выберете язык", required=False, widget=widgets.SelectMultiple(attrs={'size': Language.objects.all().count()}))
 
 class LoginForm(AuthenticationForm):
     username=forms.CharField(max_length=50, label="Логин", required=False)
@@ -81,12 +82,12 @@ class UserUpdateForm(forms.Form):
     })
 
 class EmailForm(forms.Form):
-    address=forms.ModelMultipleChoiceField(queryset=User.objects.all(), label="Выеберете адресата")
+    address=forms.ModelMultipleChoiceField(queryset=User.objects.all().order_by('username'), label="Выберете адресата", widget=widgets.SelectMultiple(attrs={'size': 3}))
     subject=forms.CharField(max_length=50, label="Тема", required=False)
     message=forms.CharField(max_length=1000, label="Сообщение", widget=forms.Textarea)
 
 class MoneyPlusForm(forms.Form):
-    plus=forms.IntegerField(min_value=0, max_value=2147483647, label="Введите сумму", error_messages={
+    plus=forms.IntegerField(min_value=0, max_value=2147483647, label="Введите сумму", required=False, error_messages={
                     'required': 'Поле обязательно для заполнения',
                     'min_value': 'Некорректное значение',
                     'max_value': 'Слишком большое число'

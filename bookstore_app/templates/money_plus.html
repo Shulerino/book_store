@@ -8,9 +8,6 @@
 {%endblock%}
 
 {%block view%}
-{%if message%}
-    <p align="center"><font color="red">{{message}}</font></p>
-{%endif%}
 <p><b>Ваш текущий баланс:</b> {{money.money}}</p>
 <form action="" method="post">
     {% csrf_token %}

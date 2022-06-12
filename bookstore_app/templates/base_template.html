@@ -13,26 +13,26 @@
 
     </head>
     <body>
-        <table width="100%" heigt="100%" border="1">
-            <tr>
-                <td width="20">
-                    <a href="{% url 'index' %}">На главную</a><br>
-                    <a href="{{request.META.HTTP_REFERER}}">Назад</a>
+        <table width="100%" heigt="100%" frame="void" rules="rows">
+            <tr bgcolor="Gainsboro">
+                <td width="250" bgcolor="Lightgrey">
+                    <a href="{% url 'index' %}"><font size="5">На главную</font></a><br>
+                    <a href="{{request.META.HTTP_REFERER}}"><font size="5">Назад</font></a>
                 </td>
-                <td align="center">
-                    <h1>Книжный магазин</h1>
+                <td align="center" valign="middle">
+                    <font size="10" color="DarkBlue"><b>КНИЖНЫЙ МАГАЗИН</b></font>
                 </td>
-                <td width="30" height="10">
+                <td width="100" height="10" align="center" bgcolor="Lightgrey" >
                 {%block login%}
                     {%if user.is_authenticated%}
                         {%if user.is_staff%}
-                            <div><a href="/admin/">{{user.get_username}}</a></div>
+                            <div><a href="/admin/"><font size="4">{{user.get_username}}</font></a></div>
                         {%else%}
                             {% for group in request.user.groups.all %}
                                 {%if group.name == 'clients'%}
-                                    <div><a href="{% url 'profile' %}">{{user.get_username}}</a></div>
+                                    <div><a href="{% url 'profile' %}"><font size="4">{{user.get_username}}</font></a></div>
                                 {%elif group.name == 'workers'%}
-                                    <div><a href="{% url 'worker' %}">{{user.get_username}}</a></div>
+                                    <div><a href="{% url 'worker' %}"><font size="4">{{user.get_username}}</font></a></div>
                                 {%endif%}
                             {%endfor%}  
                         {%endif%}
@@ -45,13 +45,12 @@
                 </td>
             </tr>
             <tr>
-                <td height="100%" valign="top">
+                <td height="100%" valign="top" bgcolor="AliceBlue">
                     <br>
                     {%block navigate%}
                     {%endblock%}
                 </td>
                 <td colspan="2">
-                    <br>
                     {%block view%}
                     {%endblock%}
                 </td>

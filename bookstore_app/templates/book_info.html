@@ -4,18 +4,22 @@
 book_info
 {%endblock%}
 
-{%block view%} 
-    <div>
-        <b>{{book.title}}</b>
-    </div>
+{%block navigate%}
     {%if book.image%}
-    <div>
+    <div align="center">
         <img src="{{book.image.url}}">
     </div>
     {%endif%}
+{%endblock%}
+
+{%block view%} 
+    <div>
+        <b>{{book.title}}</b>
+    </div>    
     <div>
         {{book.summary}}
     </div>
+    <br>
     {% for group in request.user.groups.all %}
         {% if group.name == 'workers' %} 
             <form action="{% url 'book_update' book.id %}" method="get">

@@ -13,22 +13,28 @@ Index
     <hr>
     <form action="" method="post">
     {% csrf_token %}
-        {{author_form.as_p}}
-        {{genre_form.as_p}}
+    {%for field in author_form%}
+        <p><b>{{field.label}}:</b><br>{{field}}</p>
+    {% endfor %}
+    {%for field in genre_form%}
+        <p><b>{{field.label}}:</b><br>{{field}}</p>
+    {% endfor %}
         <input type="submit" value="OK" name="butsearchauthor"/>
     </form>
     <hr>
     <form action="" method="post">
-        {% csrf_token %}
-            {{language_form.as_p}}
-            <input type="submit" value="OK" name="butsearchlanguage"/>
-        </form>
+    {% csrf_token %}
+    {%for field in language_form%}
+        <p><b>{{field.label}}:</b><br>{{field}}</p>
+    {% endfor %}
+        <input type="submit" value="OK" name="butsearchlanguage"/>
+    </form>
 {%endblock%}
 
 {%block view%}
     <div>
         {%if books%}
-        <table border="1">
+        <table rules="rows">
             {%for item in books%}
             <tr>
                 <td>
