@@ -16,7 +16,7 @@ worker
     {% csrf_token %}
     <input type="submit" value="Добавить книгу" name="butadd"/>
 </form>
-<form action="{% url 'book_add' %}" method="get">
+<form action="{% url 'author_add' %}" method="get">
     {% csrf_token %}
     <input type="submit" value="Добавить автора" name="butauthor"/>
 </form>

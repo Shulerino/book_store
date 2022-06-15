@@ -1,6 +1,6 @@
 from email.policy import default
 from django import forms
-from .models import Author, Genre, Language
+from .models import *
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, PasswordChangeForm
 from django.contrib.auth.models import User
 from django.forms import widgets
@@ -10,13 +10,13 @@ class SearchForm(forms.Form):
     search_title=forms.CharField(required=False, label="Введите название книги")
 
 class GenreForm(forms.Form):
-    genre_list=forms.ModelChoiceField(Genre.objects.all(), label="Выберете жанр", required=False)
+    genre_list=forms.ChoiceField(choices=Book.GENR_CORT, label="Выберете жанр", required=False)
 
 class AuthorForm(forms.Form):
     author_list=forms.ModelChoiceField(Author.objects.all(), label="Выберете автора", required=False)
 
 class LanguageForm(forms.Form):
-    language_list=forms.ModelMultipleChoiceField(queryset=Language.objects.all(), label="Выберете язык", required=False, widget=widgets.SelectMultiple(attrs={'size': Language.objects.all().count()}))
+    language_list=forms.MultipleChoiceField(choices=Book.LANG_CORT, label="Выберете язык", required=False, widget=widgets.SelectMultiple(attrs={'size': len(Book.LANG_CORT)}))
 
 class LoginForm(AuthenticationForm):
     username=forms.CharField(max_length=50, label="Логин", required=False)

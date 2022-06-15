@@ -31,11 +31,11 @@ def index(request):
         if author_form.is_valid() and genre_form.is_valid():
             name_author=author_form.cleaned_data["author_list"]
             name_genre=genre_form.cleaned_data["genre_list"]
-            if name_author is not None and name_genre is not None:
+            if name_author is not None and name_genre is not '':
                 books=Book.objects.filter(author=name_author).filter(genre=name_genre)
             elif name_author is None:
                 books=Book.objects.filter(genre=name_genre)
-            elif name_genre is None:
+            elif name_genre is '':
                 books=Book.objects.filter(author=name_author)
         if not books:
                 result=False

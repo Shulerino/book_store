@@ -4,8 +4,10 @@ from django.contrib.auth.models import User
 from datetime import timedelta, date
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
+from ast import literal_eval
 
 # Create your models here.
+
 
 class UserMoney(models.Model):
     user=models.OneToOneField(User, on_delete=models.CASCADE)
@@ -34,31 +36,17 @@ class Author (models.Model):
         if self.date_of_death < self.date_of_birth:
             raise ValidationError('Дата смерти не может быть раньше даты рождения', code='invalid_death')
 
-class Genre (models.Model):
-    genre=models.CharField(max_length=50)
-
-    def __str__(self):
-        return self.genre
-
-    class Meta:
-        ordering=["genre"]
-
-class Language (models.Model):
-    language=models.CharField(max_length=50)
-
-    def __str__(self):
-        return self.language
-
-    class Meta:
-        ordering=["language"]
 
 class Book (models.Model):
+    LANG_CORT=(("ENG", "Английский"), ("DEU", "Немецкий"), ("FRA" ,"Французский"), ("RUS" ,"Русский"), ("ITA", "Итальянский"), ("SPA", "Испанский"), ("CHI", "Китайский"))
+    GENR_CORT=((None, "---------"), ("Basnya", "Басня"), ("Povest", "Повесть"), ("Poema", "Поэма"), ("Proza", "Проза"), ("Pyesa", "Пьеса"), ("Rasskaz", "Рассказ"), ("Roman", "Роман"), ("Skazka", "Сказка"), ("Stix", "Стихотворение"))
+
     title=models.CharField(max_length=100, verbose_name="Название")
     image=models.ImageField(upload_to='media/', blank=True, null=True, verbose_name="Изображение")
     summary=models.TextField(max_length=500, blank=True, null=True, verbose_name="Описание")
     author=models.ForeignKey(Author, on_delete=models.SET_NULL, null=True, verbose_name="Автор")
-    genre=models.ManyToManyField(Genre, verbose_name="Жанр")
-    language=models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, verbose_name="Язык")
+    language=models.CharField(max_length=3, choices=sorted(LANG_CORT, key=lambda x: x[1] ), verbose_name="Язык")
+    genre=models.CharField(max_length=20, choices=sorted(GENR_CORT, key=lambda x: x[1] ), verbose_name="Жанр")
     price=models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(2147483647)], null=True, verbose_name="Стоимость")
     count=models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(2147483647)], null=True, verbose_name="Количество")
 

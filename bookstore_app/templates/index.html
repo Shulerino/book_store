@@ -45,11 +45,8 @@ Index
                 <td>
                     <p><a href="{{item.get_absolute_url}}">{{item.title}}</a></p>
                     <p><b>Автор:</b> {{item.author}}</p>
-                    <p><b>Жанр:</b> 
-                        {%for i in item.genre.all%}
-                            {{i}}
-                        {%endfor%}</p>
-                    <p><b>Язык:</b> {{item.language}}</p>
+                    <p><b>Жанр:</b> {{item.get_genre_display}}</p>
+                    <p><b>Язык:</b> {{item.get_language_display}}</p>
                     <p><b>Цена:</b> {{item.price}}</p>
                     {%if item.count %} 
                         <p>Оставшееся количество: {{item.count}}</p>   
