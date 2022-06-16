@@ -25,10 +25,9 @@ class Author (models.Model):
 
     def __str__(self):
         if self.patronymic == None:
-            return self.surname + " " + self.name[0] + "."
+            return "{0} {1}.".format(self.surname, self.name[0])
         else:
-            return self.surname + " " + self.name[0] + "." + self.patronymic[0] + "."
-
+            return "{0} {1}.{2}.".format(self.surname, self.name[0], self.patronymic[0])
     class Meta:
         ordering=["surname"]
 

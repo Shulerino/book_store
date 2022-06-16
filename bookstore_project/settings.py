@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 
 from pathlib import Path
 from re import TEMPLATE
+from telnetlib import AUTHENTICATION
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -133,3 +134,4 @@ TEMPLATE_CONTEXT_PROCESSORS = 'django.core.context_processors.request'
 
 CSRF_TRUSTED_ORIGINS = ["http://localhost:1337"]
 
+AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.AllowAllUsersModelBackend']

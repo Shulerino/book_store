@@ -19,7 +19,7 @@ class LanguageForm(forms.Form):
     language_list=forms.MultipleChoiceField(choices=Book.LANG_CORT, label="Выберете язык", required=False, widget=widgets.SelectMultiple(attrs={'size': len(Book.LANG_CORT)}))
 
 class LoginForm(AuthenticationForm):
-    username=forms.CharField(max_length=50, label="Логин", required=False)
+    username=forms.CharField(max_length=150, label="Логин", required=False)
     password=forms.CharField(max_length=20, label="Пароль", required=False, widget=forms.PasswordInput)
     error_messages = {
         'invalid_login': 'Неправильный логин или пароль',
@@ -27,14 +27,17 @@ class LoginForm(AuthenticationForm):
     }
 
 class RegisterForm(UserCreationForm):
-    username=forms.CharField(max_length=50, label="Логин", error_messages = {
+    username=forms.CharField(max_length=150, label="Логин", error_messages = {
+        'required': 'Поле обязательно для заполнения',
         'unique': 'Пользователь с таким именем уже существует',
         'max_length': 'Слишком длинный логин',
     })
-    password1=forms.CharField(max_length=50, label="Пароль", widget=forms.PasswordInput, error_messages = {
+    password1=forms.CharField(max_length=20, label="Пароль", widget=forms.PasswordInput, error_messages = {
+        'required': 'Поле обязательно для заполнения',
         'max_length': 'Слишком большой пароль',
     })
     password2=forms.CharField(max_length=20, label="Повторите пароль", widget=forms.PasswordInput, error_messages = {
+        'required': 'Поле обязательно для заполнения',
         'max_length': 'Слишком большой пароль',
     })
     first_name=forms.CharField(max_length=30, label="Имя пользователя", required=False, error_messages = {
@@ -48,15 +51,12 @@ class RegisterForm(UserCreationForm):
         'required': 'Поле обязательно для заполнения'
     })
     error_messages = {
-        'unique': 'Пользователь с таким именем уже существует',
         'password_mismatch': 'Пароли не совпадают',
     }
 
 class PasswordForm(PasswordChangeForm):
-    old_password=forms.CharField(max_length=50, label="Старый пароль", strip=False, widget=forms.PasswordInput, error_messages = {
-        'max_length': 'Слишком большой пароль',
-    })
-    new_password1=forms.CharField(max_length=50, label="Новый пароль", strip=False, widget=forms.PasswordInput, error_messages = {
+    old_password=forms.CharField(max_length=20, label="Старый пароль", strip=False, widget=forms.PasswordInput)
+    new_password1=forms.CharField(max_length=20, label="Новый пароль", strip=False, widget=forms.PasswordInput, error_messages = {
         'max_length': 'Слишком большой пароль',
     })
     new_password2=forms.CharField(max_length=20, label="Повторите новый пароль", strip=False, widget=forms.PasswordInput, error_messages = {
@@ -65,8 +65,6 @@ class PasswordForm(PasswordChangeForm):
     error_messages = {
         'password_incorrect': "Неправильный старый пароль",
         'password_mismatch': "Новые пароли не совпадают",
-        'password_too_common': "Слишком простой пароль",
-        'password_too_short': "Слишком короткий пароль. Должно быть минимум 8 символов"
     }
 
 class UserUpdateForm(forms.Form):
