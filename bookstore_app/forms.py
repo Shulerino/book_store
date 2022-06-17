@@ -46,13 +46,19 @@ class RegisterForm(UserCreationForm):
     last_name=forms.CharField(max_length=150, label="Фамилия пользователя", required=False, error_messages = {
         'max_length': 'Слишком большая фамилия',
     })
-    email_address=forms.EmailField(label="E-mail", error_messages = {
+    email=forms.EmailField(label="E-mail", error_messages = {
         'invalid': 'Некорректный адрес',
-        'required': 'Поле обязательно для заполнения'
+        'required': 'Поле обязательно для заполнения',
     })
     error_messages = {
         'password_mismatch': 'Пароли не совпадают',
     }
+
+    def clean(self):
+        cleaned_data=super().clean()
+        if User.objects.filter(email=cleaned_data.get('email')).exists():
+            self.add_error('email', 'Пользователь с таким адресом уже существует')
+        return cleaned_data
 
 class PasswordForm(PasswordChangeForm):
     old_password=forms.CharField(max_length=20, label="Старый пароль", strip=False, widget=forms.PasswordInput)
@@ -74,19 +80,30 @@ class UserUpdateForm(forms.Form):
     last_name=forms.CharField(max_length=150, label="Фамилия пользователя", required=False, error_messages = {
         'max_length': 'Слишком большая фамилия',
     })
-    email_address=forms.EmailField(label="E-mail", error_messages = {
+    email=forms.EmailField(label="E-mail", error_messages = {
         'invalid': 'Некорректный адрес',
         'required': 'Поле обязательно для заполнения'
     })
+    
+    def clean(self):
+        cleaned_data=super().clean()
+        if User.objects.filter(email=cleaned_data.get('email')).exists():
+            self.add_error('email', 'Пользователь с таким адресом уже существует')
+        return cleaned_data
 
 class EmailForm(forms.Form):
-    address=forms.ModelMultipleChoiceField(queryset=User.objects.all().order_by('username'), label="Выберете адресата", widget=widgets.SelectMultiple(attrs={'size': 3}))
-    subject=forms.CharField(max_length=50, label="Тема", required=False)
-    message=forms.CharField(max_length=1000, label="Сообщение", widget=forms.Textarea)
+    address=forms.ModelMultipleChoiceField(queryset=User.objects.all().order_by('username'), label="Выберете адресата", widget=widgets.SelectMultiple(attrs={'size': 3}), error_messages = {
+        'required': 'Поле обязательно для заполнения'
+    })
+    subject=forms.CharField(max_length=50, label="Тема", required=False, error_messages = {
+        'max_length': 'Слишком длинная тема',
+    })
+    message=forms.CharField(max_length=1000, label="Сообщение", widget=forms.Textarea, required=False, error_messages = {
+        'max_length': 'Слишком большое сообщение',
+    })
 
 class MoneyPlusForm(forms.Form):
     plus=forms.IntegerField(min_value=0, max_value=2147483647, label="Введите сумму", required=False, error_messages={
-                    'required': 'Поле обязательно для заполнения',
                     'min_value': 'Некорректное значение',
                     'max_value': 'Слишком большое число'
         })

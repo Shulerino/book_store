@@ -189,6 +189,10 @@ class RegisterUser(generic.CreateView):
 
     def form_valid(self, form):
         user=form.save()
+        user.first_name=form.cleaned_data["first_name"]
+        user.last_name=form.cleaned_data["last_name"]
+        user.email=form.cleaned_data["email"]
+        user.save()
         user.groups.add(Group.objects.get(name='clients'))
         auth.login(self.request, user)
         UserMoney.objects.create(user=self.request.user, money=0)
@@ -196,6 +200,7 @@ class RegisterUser(generic.CreateView):
     
     def form_invalid(self, form):
         return super().form_invalid(form)
+
 
 class PasswordChange(LoginRequiredMixin, PasswordChangeView):
     raise_exception=True
@@ -219,7 +224,7 @@ def updateuser(request):
     form=UserUpdateForm(initial={
             'first_name': user.first_name,
             'last_name': user.last_name,
-            'email_address': user.email
+            'email': user.email
         })
     
     if request.method=='POST':
@@ -227,7 +232,7 @@ def updateuser(request):
         if form.is_valid():
             user.first_name=form.cleaned_data["first_name"]
             user.last_name=form.cleaned_data["last_name"]
-            user.email=form.cleaned_data["email_address"]
+            user.email=form.cleaned_data["email"]
             user.save()
             messages.success(request, 'Профиль изменен')
         else:
