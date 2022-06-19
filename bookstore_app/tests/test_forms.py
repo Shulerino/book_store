@@ -2,7 +2,6 @@ from distutils.log import Log
 from django.test import TestCase
 from bookstore_app.models import *
 from bookstore_app.forms import *
-from bookstore_app.views import email
 
 class TestSearchForm(TestCase):
     def test_searchform_label(self):
