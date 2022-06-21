@@ -87,16 +87,24 @@ class BookEdit(PermissionRequiredMixin, generic.UpdateView):
         model=Book,
         fields='__all__',
         error_messages={
-            'title': {'required': 'Поле обязательно для заполнения'},
+            'title': {
+                'required': 'Поле обязательно для заполнения',
+                'max_length': 'Слишком длинное название'
+                },
+            'summary': {'max_length': 'Слишком длинное описание'},
             'author': {'required': 'Поле обязательно для заполнения'},
             'genre': {'required': 'Поле обязательно для заполнения'},
             'language': {'required': 'Поле обязательно для заполнения'},
-            'price': {'required': 'Поле обязательно для заполнения',
-                    'min_value': 'Некорректное значение',
-                    'max_value': 'Слишком большое число'},
-            'count': {'required': 'Поле обязательно для заполнения',
-                    'min_value': 'Некорректное значение',
-                    'max_value': 'Слишком большое число'},
+            'price': {
+                'required': 'Поле обязательно для заполнения',
+                'min_value': 'Некорректное значение',
+                'max_value': 'Слишком большое число'
+                },
+            'count': {
+                'required': 'Поле обязательно для заполнения',
+                'min_value': 'Некорректное значение',
+                'max_value': 'Слишком большое число'
+                },
         })
 
     def form_valid(self, form):
@@ -118,7 +126,11 @@ class BookAdd(PermissionRequiredMixin, generic.CreateView):
         model=Book,
         fields='__all__',
         error_messages={
-            'title': {'required': 'Поле обязательно для заполнения'},
+            'title': {
+                'required': 'Поле обязательно для заполнения',
+                'max_length': 'Слишком длинное название'
+                },
+            'summary': {'max_length': 'Слишком длинное описание'},
             'author': {'required': 'Поле обязательно для заполнения'},
             'genre': {'required': 'Поле обязательно для заполнения'},
             'language': {'required': 'Поле обязательно для заполнения'},
@@ -156,10 +168,16 @@ class AuthorAdd(PermissionRequiredMixin, generic.CreateView):
         model=Author,
         fields='__all__',
         error_messages={
-            'surname': {'required': 'Поле обязательно для заполнения'},
-            'name': {'required': 'Поле обязательно для заполнения'},
-            'date_of_birth': {'required': 'Поле обязательно для заполнения',
-                            'invalid': 'Некорректная дата'},
+            'surname': {
+                'required': 'Поле обязательно для заполнения',
+                'max_length': 'Слишком длинная фамилия'
+                },
+            'name': {
+                'required': 'Поле обязательно для заполнения',
+                'max_length': 'Слишком длинное имя'
+                },
+            'patronymic': {'max_length': 'Слишком длинное отчество'},
+            'date_of_birth': {'invalid': 'Некорректная дата'},
             'date_of_death': {'invalid': 'Некорректная дата'},
         })
 

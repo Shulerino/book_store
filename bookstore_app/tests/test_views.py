@@ -4,6 +4,7 @@ from django.conf import settings
 from django.test import TestCase, override_settings
 from bookstore_app.models import *
 from bookstore_app.forms import *
+from django.contrib.auth.models import User, Group, Permission
 from unittest import mock
 from django.core.files import File
 
@@ -177,8 +178,308 @@ class TestBookDetailView(TestCase):
         self.assertIn(book.language, resp1.context["book"].language)
         self.assertEqual(book.price, resp1.context["book"].price)
         self.assertEqual(book.count, resp1.context["book"].count)
-        print(book.image)
-        print(resp1.context["book"].image)
+
+class TestBookEditView(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        
+        user = User.objects.create_user(
+            username='user1', 
+            password='1q2w3e4C'
+            )
+        user.save()  
+        
+        worker = User.objects.create_user(
+            username='worker1', 
+            password='1q2w3e4C'
+            )
+        worker.save()
+        worker.user_permissions.add(Permission.objects.get(codename='change_book'))
+
+        for num in range(6):
+            Author.objects.create(
+                surname="surname{0}".format(num),
+                name="name{0}".format(num)
+            )
+
+        for num in range(5):
+            Book.objects.create(
+                title="title{0}".format(num+1),
+                #image=image_list[num],
+                summary="summary{0}".format(num+1),
+                author=Author.objects.get(id=num+1),
+                genre=Book.GENR_CORT[num+1][0],
+                language=Book.LANG_CORT[num+1][0],
+                price=num+101,
+                count=num+1
+            )
+
+    def test_bookedit_view_get_right(self):
+        book=Book.objects.get(id=1)
+        self.client.login(username='worker1', password='1q2w3e4C')
+        resp1 = self.client.get('/book/1/update')
+        resp2 = self.client.get('/book/105/update')
+        resp3 = self.client.get(reverse("book_update", kwargs={'pk': 1}))
+        self.assertEqual(resp1.status_code, 200)
+        self.assertEqual(resp2.status_code, 404)
+        self.assertEqual(resp3.status_code, 200)
+        self.assertTemplateUsed(resp1, "book_edit.html")
+        self.assertIn(book.title, resp1.context["book"].title)
+        #self.assertEqual(book.image, resp1.context["book"].image)
+        self.assertIn(book.summary, resp1.context["book"].summary)
+        self.assertEqual(book.author, resp1.context["book"].author)
+        self.assertIn(book.genre, resp1.context["book"].genre)
+        self.assertIn(book.language, resp1.context["book"].language)
+        self.assertEqual(book.price, resp1.context["book"].price)
+        self.assertEqual(book.count, resp1.context["book"].count)
+    
+    def test_bookedit_view_get_wrong(self):
+        self.client.login(username='user1', password='1q2w3e4C')
+        resp = self.client.get('/book/1/update')
+        self.assertEqual(resp.status_code, 403)
+
+    def test_bookedit_view_post(self):
+        self.client.login(username='worker1', password='1q2w3e4C')
+        resp = self.client.post(reverse('book_update', kwargs={'pk': 1}), {
+            "title": "new_title",
+            "summary": "new_summary",
+            "author": 3,
+            "genre": "Rasskaz",
+            "language": "ITA",
+            "price": 1000000,
+            "count": 500
+            })
+        self.assertRedirects(resp, reverse('book_info', kwargs={'pk': 1}))
+        book=Book.objects.get(id=1)
+        author=Author.objects.get(id=3)
+        self.assertEqual(book.title, "new_title")
+        self.assertEqual(book.summary, "new_summary")
+        self.assertEqual(book.author, author)
+        self.assertEqual(book.genre, "Rasskaz")
+        self.assertEqual(book.language, "ITA")
+        self.assertEqual(book.price, 1000000)
+        self.assertEqual(book.count, 500)
+    
+    def test_bookedit_view_post_required(self):
+        self.client.login(username='worker1', password='1q2w3e4C')
+        resp = self.client.post(reverse('book_update', kwargs={'pk': 1}), {})
+        self.assertFormError(resp, "form", "title", 'Поле обязательно для заполнения')
+        self.assertFormError(resp, "form", "author", 'Поле обязательно для заполнения')
+        self.assertFormError(resp, "form", "genre", 'Поле обязательно для заполнения')
+        self.assertFormError(resp, "form", "language", 'Поле обязательно для заполнения')
+        self.assertFormError(resp, "form", "price", 'Поле обязательно для заполнения')
+        self.assertFormError(resp, "form", "count", 'Поле обязательно для заполнения')
+
+    def test_bookedit_view_post_minvalue(self):
+        self.client.login(username='worker1', password='1q2w3e4C')
+        resp = self.client.post(reverse('book_update', kwargs={'pk': 1}), {
+            "title": "new_title",
+            "summary": "new_summary",
+            "author": 3,
+            "genre": "Rasskaz",
+            "language": "ITA",
+            "price": -1000000,
+            "count": -500
+            })
+        self.assertFormError(resp, "form", "price", 'Некорректное значение')
+        self.assertFormError(resp, "form", "count", 'Некорректное значение')
+
+    def test_bookedit_view_post_maxvalue(self):
+        self.client.login(username='worker1', password='1q2w3e4C')
+        resp = self.client.post(reverse('book_update', kwargs={'pk': 1}), {
+            "title": "new_titlenew_titlenew_titlenew_titlenew_titlenew_titlenew_titlenew_titlenew_titlenew_titlenew_titlenew_title",
+            "summary": "new_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summary",
+            "author": 3,
+            "genre": "Rasskaz",
+            "language": "ITA",
+            "price": 100000000000000000000000000000,
+            "count": 300000000000000000000000000000
+            })
+        self.assertFormError(resp, "form", "title", 'Слишком длинное название')
+        self.assertFormError(resp, "form", "summary", 'Слишком длинное описание')
+        self.assertFormError(resp, "form", "price", 'Слишком большое число')
+        self.assertFormError(resp, "form", "count", 'Слишком большое число')
+
+class TestBookAddView(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        
+        user = User.objects.create_user(
+            username='user1', 
+            password='1q2w3e4C'
+            )
+        user.save()  
+        
+        worker = User.objects.create_user(
+            username='worker1', 
+            password='1q2w3e4C'
+            )
+        worker.save()
+        worker.user_permissions.add(Permission.objects.get(codename='add_book'))
+
+        for num in range(6):
+            Author.objects.create(
+                surname="surname{0}".format(num),
+                name="name{0}".format(num)
+            )
+
+    def test_bookadd_view_get_right(self):
+        self.client.login(username='worker1', password='1q2w3e4C')
+        resp1 = self.client.get('/book/add')
+        resp2 = self.client.get(reverse("book_add"))
+        self.assertEqual(resp1.status_code, 200)
+        self.assertEqual(resp2.status_code, 200)
+        self.assertTemplateUsed(resp1, "book_add.html")
+
+    def test_bookadd_view_get_wrong(self):
+        self.client.login(username='user1', password='1q2w3e4C')
+        resp = self.client.get('/book/add')
+        self.assertEqual(resp.status_code, 403)
+
+    def test_bookadd_view_post(self):
+        self.client.login(username='worker1', password='1q2w3e4C')
+        resp = self.client.post(reverse('book_add'), {
+            "title": "new_title",
+            "summary": "new_summary",
+            "author": 3,
+            "genre": "Rasskaz",
+            "language": "ITA",
+            "price": 1000000,
+            "count": 500
+            })
+        self.assertRedirects(resp, reverse('book_info', kwargs={'pk': 1}))
+        book=Book.objects.get(id=1)
+        author=Author.objects.get(id=3)
+        self.assertEqual(book.title, "new_title")
+        self.assertEqual(book.summary, "new_summary")
+        self.assertEqual(book.author, author)
+        self.assertEqual(book.genre, "Rasskaz")
+        self.assertEqual(book.language, "ITA")
+        self.assertEqual(book.price, 1000000)
+        self.assertEqual(book.count, 500)
+
+    def test_bookadd_view_post_required(self):
+        self.client.login(username='worker1', password='1q2w3e4C')
+        resp = self.client.post(reverse('book_add'), {})
+        self.assertFormError(resp, "form", "title", 'Поле обязательно для заполнения')
+        self.assertFormError(resp, "form", "author", 'Поле обязательно для заполнения')
+        self.assertFormError(resp, "form", "genre", 'Поле обязательно для заполнения')
+        self.assertFormError(resp, "form", "language", 'Поле обязательно для заполнения')
+        self.assertFormError(resp, "form", "price", 'Поле обязательно для заполнения')
+        self.assertFormError(resp, "form", "count", 'Поле обязательно для заполнения')
+
+    def test_bookadd_view_post_minvalue(self):
+        self.client.login(username='worker1', password='1q2w3e4C')
+        resp = self.client.post(reverse('book_add'), {
+            "title": "new_title",
+            "summary": "new_summary",
+            "author": 3,
+            "genre": "Rasskaz",
+            "language": "ITA",
+            "price": -1000000,
+            "count": -500
+            })
+        self.assertFormError(resp, "form", "price", 'Некорректное значение')
+        self.assertFormError(resp, "form", "count", 'Некорректное значение')
+
+    def test_bookadd_view_post_maxvalue(self):
+        self.client.login(username='worker1', password='1q2w3e4C')
+        resp = self.client.post(reverse('book_add'), {
+            "title": "new_titlenew_titlenew_titlenew_titlenew_titlenew_titlenew_titlenew_titlenew_titlenew_titlenew_titlenew_title",
+            "summary": "new_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summarynew_summary",
+            "author": 3,
+            "genre": "Rasskaz",
+            "language": "ITA",
+            "price": 100000000000000000000000000000,
+            "count": 300000000000000000000000000000
+            })
+        self.assertFormError(resp, "form", "title", 'Слишком длинное название')
+        self.assertFormError(resp, "form", "summary", 'Слишком длинное описание')
+        self.assertFormError(resp, "form", "price", 'Слишком большое число')
+        self.assertFormError(resp, "form", "count", 'Слишком большое число')
+
+class TestAuthorAddView(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        
+        user = User.objects.create_user(
+            username='user1', 
+            password='1q2w3e4C'
+            )
+        user.save()  
+        
+        worker = User.objects.create_user(
+            username='worker1', 
+            password='1q2w3e4C'
+            )
+        worker.save()
+        worker.user_permissions.add(Permission.objects.get(codename='add_author'))
+
+    def test_authoradd_view_get_right(self):
+        self.client.login(username='worker1', password='1q2w3e4C')
+        resp1 = self.client.get('/author/add')
+        resp2 = self.client.get(reverse("author_add"))
+        self.assertEqual(resp1.status_code, 200)
+        self.assertEqual(resp2.status_code, 200)
+        self.assertTemplateUsed(resp1, "author_add.html")
+
+    def test_authoradd_view_get_wrong(self):
+        self.client.login(username='user1', password='1q2w3e4C')
+        resp = self.client.get('/author/add')
+        self.assertEqual(resp.status_code, 403)
+
+    def test_authoradd_view_post(self):
+        self.client.login(username='worker1', password='1q2w3e4C')
+        resp = self.client.post(reverse('author_add'), {
+            "surname": "new_surname",
+            "name": "new_name",
+            "patronymic": "new_patronymic",
+            "date_of_birth": "1900-01-01",
+            "date_of_death": "2000-12-12",
+            })
+        self.assertRedirects(resp, reverse('worker'))
+        author=Author.objects.get(id=1)
+        self.assertEqual(author.surname, "new_surname")
+        self.assertEqual(author.name, "new_name")
+        self.assertEqual(author.patronymic, "new_patronymic")
+        self.assertEqual(str(author.date_of_birth), "1900-01-01")
+        self.assertEqual(str(author.date_of_death), "2000-12-12")
+
+    def test_authoradd_view_post_required(self):
+        self.client.login(username='worker1', password='1q2w3e4C')
+        resp = self.client.post(reverse('author_add'), {})
+        self.assertFormError(resp, "form", "surname", 'Поле обязательно для заполнения')
+        self.assertFormError(resp, "form", "name", 'Поле обязательно для заполнения')
+
+    def test_authoradd_view_post_maxlength(self):
+        self.client.login(username='worker1', password='1q2w3e4C')
+        resp = self.client.post(reverse('author_add'), {
+            "surname": "new_surnamenew_surnamenew_surnamenew_surnamenew_surnamenew_surnamenew_surnamenew_surnamenew_surnamenew_surnamenew_surname",
+            "name": "new_namenew_namenew_namenew_namenew_namenew_namenew_namenew_namenew_namenew_namenew_namenew_namenew_namenew_namenew_namenew_namenew_name",
+            "patronymic": "new_patronymicnew_patronymicnew_patronymicnew_patronymicnew_patronymicnew_patronymicnew_patronymicnew_patronymicnew_patronymicnew_patronymic",
+            })
+        self.assertFormError(resp, "form", "surname", 'Слишком длинная фамилия')
+        self.assertFormError(resp, "form", "name", 'Слишком длинное имя')
+        self.assertFormError(resp, "form", "patronymic", 'Слишком длинное отчество')
+
+    def test_authoradd_view_post(self):
+        self.client.login(username='worker1', password='1q2w3e4C')
+        resp = self.client.post(reverse('author_add'), {
+            "surname": "new_surname",
+            "name": "new_name",
+            "patronymic": "new_patronymic",
+            "date_of_birth": "1900-01-01",
+            "date_of_death": "1800-12-12",
+            })
+        self.assertEqual(resp.context["form"].errors["__all__"], ["Дата смерти не может быть раньше даты рождения"])
+        
+        
+    
+
+
+    
+
+    
 
 
 

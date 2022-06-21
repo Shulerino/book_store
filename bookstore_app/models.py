@@ -32,8 +32,9 @@ class Author (models.Model):
         ordering=["surname"]
 
     def clean(self, *args, **kwargs):
-        if self.date_of_death < self.date_of_birth:
-            raise ValidationError('Дата смерти не может быть раньше даты рождения', code='invalid_death')
+        if self.date_of_death is not None:
+            if self.date_of_death < self.date_of_birth:
+                raise ValidationError('Дата смерти не может быть раньше даты рождения', code='invalid_death')
 
 
 class Book (models.Model):
