@@ -182,7 +182,6 @@ class TestBookDetailView(TestCase):
 class TestBookEditView(TestCase):
     @classmethod
     def setUpTestData(cls):
-        
         user = User.objects.create_user(
             username='user1', 
             password='1q2w3e4C'
@@ -303,7 +302,6 @@ class TestBookEditView(TestCase):
 class TestBookAddView(TestCase):
     @classmethod
     def setUpTestData(cls):
-        
         user = User.objects.create_user(
             username='user1', 
             password='1q2w3e4C'
@@ -401,7 +399,6 @@ class TestBookAddView(TestCase):
 class TestAuthorAddView(TestCase):
     @classmethod
     def setUpTestData(cls):
-        
         user = User.objects.create_user(
             username='user1', 
             password='1q2w3e4C'
@@ -472,6 +469,157 @@ class TestAuthorAddView(TestCase):
             "date_of_death": "1800-12-12",
             })
         self.assertEqual(resp.context["form"].errors["__all__"], ["Дата смерти не может быть раньше даты рождения"])
+
+class TestLoginUser(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        user = User.objects.create_user(
+            username='user1', 
+            password='1q2w3e4C'
+            )
+        user.save()
+
+    def test_loginuser_view_get(self):
+        resp1 = self.client.get('/login/')
+        resp2 = self.client.get(reverse("login"))
+        self.assertEqual(resp1.status_code, 200)
+        self.assertEqual(resp2.status_code, 200)
+        self.assertTemplateUsed(resp1, "login.html")
+
+    def test_loginuser_view_post_correct(self):
+        resp = self.client.post(reverse('login'), {
+            "username": "user1",
+            "password": "1q2w3e4C",
+            })
+        self.assertRedirects(resp, reverse('index'))
+
+    def test_loginuser_view_post_incorrect(self):  
+        resp1 = self.client.post(reverse('login'), {
+            "username": "user2",
+            "password": "1q2w3e4C",
+            })
+        resp2 = self.client.post(reverse('login'), {
+            "username": "user1",
+            "password": "1q2w3e4CCCC",
+            })
+        self.assertEqual(resp1.status_code, 200)
+        self.assertEqual(resp2.status_code, 200)
+
+class TestRegisterUser(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Group.objects.create(name='clients')
+
+    def test_registeruser_view_get(self):
+        resp1 = self.client.get('/register/')
+        resp2 = self.client.get(reverse("register"))
+        self.assertEqual(resp1.status_code, 200)
+        self.assertEqual(resp2.status_code, 200)
+        self.assertTemplateUsed(resp1, "register.html")
+    
+    def test_registeruser_view_post_correct(self):
+        resp = self.client.post(reverse('register'), {
+            "username": "user1",
+            "password1": "1q2w3e4C",
+            "password2": "1q2w3e4C",
+            "first_name": "Ivan",
+            "last_name": "Smirnov",
+            "email": "test@mail.ru",
+            })
+        self.assertRedirects(resp, reverse('index'))
+        user=User.objects.get(id=1)
+        self.assertEqual(user.username, "user1")
+        self.assertEqual(user.first_name, "Ivan")
+        self.assertEqual(user.last_name, "Smirnov")
+        self.assertEqual(user.email, "test@mail.ru")
+
+    def test_registeruser_view_post_incorrect(self):
+        user=User.objects.create_user(
+            username='user1', 
+            password='1q2w3e4C',
+            email='test@mail.ru'
+            )
+        user.save()
+        resp1 = self.client.post(reverse('register'), {
+            "username": "user1",
+            "password1": "1q2w3e4C",
+            "password2": "1q2w3e4C",
+            "email": "testyy@mail.ru",
+            })
+        self.assertEqual(resp1.status_code, 200)
+        resp2 = self.client.post(reverse('register'), {
+            "username": "user2",
+            "password1": "1q2w3e4C",
+            "password2": "1q2w3e4CCC",
+            "email": "testyy@mail.ru",
+            })
+        self.assertEqual(resp2.status_code, 200)
+        resp3 = self.client.post(reverse('register'), {
+            "username": "user2",
+            "password1": "1q2w3e4C",
+            "password2": "1q2w3e4C",
+            "email": "test@mail.ru",
+            })
+        self.assertEqual(resp3.status_code, 200)
+
+class TestPasswordChange(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        user = User.objects.create_user(
+            username='user1', 
+            password='1q2w3e4C'
+            )
+        user.save()
+
+    def test_passwordchange_view_get_right(self):
+        self.client.login(username='user1', password='1q2w3e4C')
+        resp1 = self.client.get('/password_change/')
+        resp2 = self.client.get(reverse("password_change"))
+        self.assertEqual(resp1.status_code, 200)
+        self.assertEqual(resp2.status_code, 200)
+        self.assertTemplateUsed(resp1, "password_change.html")
+
+    def test_passwordchange_view_get_wrong(self):
+        resp = self.client.get(reverse("password_change"))
+        self.assertEqual(resp.status_code, 403)
+
+    def test_passwordchange_view_post_correct(self):
+        self.client.login(username='user1', password='1q2w3e4C')
+        resp = self.client.post(reverse("password_change"), {
+            "old_password": "1q2w3e4C",
+            "new_password1": "1qaz2wsxQ",
+            "new_password2": "1qaz2wsxQ",
+        })
+        self.assertRedirects(resp, reverse('password_change'))
+        login=self.client.login(username='user1', password='1qaz2wsxQ')
+        self.assertTrue(login)
+
+    def test_passwordchange_view_post_incorrect(self):
+        self.client.login(username='user1', password='1q2w3e4C')
+        resp1 = self.client.post(reverse("password_change"), {
+            "old_password": "1q2w3e4CCC",
+            "new_password1": "1qaz2wsxQ",
+            "new_password2": "1qaz2wsxQ",
+        })
+        self.assertEqual(resp1.status_code, 200)
+        resp2 = self.client.post(reverse("password_change"), {
+            "old_password": "1q2w3e4C",
+            "new_password1": "1qaz2wsxQ",
+            "new_password2": "1qaz2wsxQQQQ",
+        })
+        self.assertEqual(resp2.status_code, 200)
+
+
+    
+
+
+        
+
+
+
+        
+
+        
         
         
     
