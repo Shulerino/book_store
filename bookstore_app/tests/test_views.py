@@ -609,6 +609,177 @@ class TestPasswordChange(TestCase):
         })
         self.assertEqual(resp2.status_code, 200)
 
+class TestUpdate_user(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        user = User.objects.create_user(
+            username='user1', 
+            password='1q2w3e4C',
+            first_name="Ivan",
+            last_name="Smirnov",
+            email="test@mail.ru",
+            )
+        user.save()
+
+        user_test = User.objects.create_user(
+            username='user2', 
+            password='1q2w3e4C',
+            email="tester@mail.ru",
+            )
+        user_test.save()
+
+    def test_updateuser_view_get_right(self):
+        self.client.login(username='user1', password='1q2w3e4C')
+        resp1 = self.client.get('/user_update/')
+        resp2 = self.client.get(reverse("user_update"))
+        self.assertEqual(resp1.status_code, 200)
+        self.assertEqual(resp2.status_code, 200)
+        self.assertTemplateUsed(resp1, "user_update.html")
+        self.assertEqual(resp1.context['form'].initial["first_name"], "Ivan")
+        self.assertEqual(resp1.context['form'].initial["last_name"], "Smirnov")
+        self.assertEqual(resp1.context['form'].initial["email"], "test@mail.ru")
+
+    def test_updateuser_view_get_wrong(self):
+        resp = self.client.get(reverse("user_update"))
+        self.assertEqual(resp.status_code, 302)
+        self.assertTrue(resp.url.startswith('/login/'))
+
+    def test_updateuser_view_post_correct(self):
+        self.client.login(username='user1', password='1q2w3e4C')
+        resp = self.client.post(reverse("user_update"), {
+            "first_name": "Petr",
+            "last_name": "Ivanov",
+            "email": "testik@mail.ru"
+        })
+        messages=list(resp.context["messages"])
+        self.assertEqual(str(messages[0]), "Профиль изменен")
+        user=User.objects.get(username="user1")
+        self.assertEqual(user.first_name, "Petr")
+        self.assertEqual(user.last_name, "Ivanov")
+        self.assertEqual(user.email, "testik@mail.ru")
+
+    def test_updateuser_view_post_incorrect(self):
+        self.client.login(username='user1', password='1q2w3e4C')
+        resp1 = self.client.post(reverse("user_update"), {
+            "first_name": "PetrPetrPetrPetrPetrPetrPetrPetrPetr",
+            "last_name": "Ivanov",
+            "email": "testik@mail.ru"
+        })
+        messages1=list(resp1.context["messages"])
+        self.assertEqual(str(messages1[0]), "Ошибка редкатирования")
+
+        resp2 = self.client.post(reverse("user_update"), {
+            "first_name": "Petr",
+            "last_name": "IvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanovIvanov",
+            "email": "testik@mail.ru"
+        })
+        messages2=list(resp2.context["messages"])
+        self.assertEqual(str(messages2[0]), "Ошибка редкатирования")
+
+        resp3 = self.client.post(reverse("user_update"), {
+            "first_name": "Petr",
+            "last_name": "Ivanov",
+            "email": "tester@mail.ru"
+        })
+        messages3=list(resp3.context["messages"])
+        self.assertEqual(str(messages3[0]), "Ошибка редкатирования")
+
+        resp4 = self.client.post(reverse("user_update"), {
+            "first_name": "Petr",
+            "last_name": "Ivanov",
+            "email": "test.ru"
+        })
+        messages4=list(resp4.context["messages"])
+        self.assertEqual(str(messages4[0]), "Ошибка редкатирования")
+
+class TestLogout(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        user = User.objects.create_user(
+            username='user1', 
+            password='1q2w3e4C',
+            )
+        user.save()
+
+    def test_logout_view(self):
+        self.client.login(username='user1', password='1q2w3e4C')
+        resp1 = self.client.get('/logout/')
+        resp2 = self.client.get(reverse("logout"))
+        self.assertEqual(resp1.status_code, 302)
+        self.assertEqual(resp2.status_code, 302)
+        self.assertTrue(resp1.url.startswith(''))
+        self.assertTrue(resp2.url.startswith(reverse("index")))
+        resp3=self.client.get(reverse("logout"))
+        self.assertEqual(resp3.status_code, 302)
+        self.assertTrue(resp3.url.startswith('/login/'))
+
+class TestProfile(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        user = User.objects.create_user(
+            username='user1', 
+            password='1q2w3e4C',
+            first_name="Ivan",
+            last_name="Smirnov",
+            email="test@mail.ru",
+            )
+        user.save()
+
+        for num in range(6):
+                Author.objects.create(
+                    surname="surname{0}".format(num+1),
+                    name="name{0}".format(num+1)
+                )
+
+        for num in range(5):
+            Book.objects.create(
+                title="title{0}".format(num+1),
+                author=Author.objects.get(id=num+1),
+                genre=Book.GENR_CORT[num+1][0],
+                language=Book.LANG_CORT[num+1][0],
+            )
+
+        Buy.objects.create(
+            user=User.objects.get(id=1),
+            book=Book.objects.get(id=1)
+        )
+
+        Rent.objects.create(
+            user=User.objects.get(id=1),
+            book=Book.objects.get(id=1)
+        )
+
+        UserMoney.objects.create(
+            user=User.objects.get(id=1),
+            money=500
+        )
+
+    def test_profile_get(self):
+        self.client.login(username='user1', password='1q2w3e4C')
+        buys=Buy.objects.filter(user__username="user1")
+        rents=Rent.objects.filter(user__username="user1")
+        money=UserMoney.objects.filter(user__username="user1")
+        resp1 = self.client.get('/profile/')
+        resp2 = self.client.get(reverse("profile"))
+        self.assertEqual(resp1.status_code, 200)
+        self.assertEqual(resp2.status_code, 200)
+        self.assertTemplateUsed(resp1, "profile.html")
+        self.assertQuerysetEqual(resp1.context['buys'], buys)
+        self.assertQuerysetEqual(resp1.context['rents'], rents)
+        self.assertIn(resp1.context['money'], money)
+
+    def test_profile_get_wrong(self):
+        resp = self.client.get('/profile/')
+        self.assertEqual(resp.status_code, 302)
+        self.assertTrue(resp.url.startswith('/login/'))
+
+
+
+
+
+        
+
+
 
     
 

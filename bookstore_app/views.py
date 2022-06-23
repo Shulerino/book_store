@@ -280,6 +280,7 @@ def profileuser(request):
         })
 
 @login_required(login_url='login')
+@permission_required('bookstore_app.add_book', raise_exception=True)
 def workeruser(request):
     book_list=Book.objects.all()
     paginator=Paginator(book_list, 10)
