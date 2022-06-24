@@ -297,6 +297,7 @@ def workeruser(request):
         })
 
 @login_required(login_url='login')
+@permission_required('bookstore_app.add_buy', raise_exception=True)
 def buybook(request, pk):
     if request.method=='POST':
         book=Book.objects.get(id=pk)
@@ -313,6 +314,7 @@ def buybook(request, pk):
             return redirect ("money_plus", message="Недостаточно средств!")
 
 @login_required(login_url='login')
+@permission_required('bookstore_app.add_rent', raise_exception=True)
 def rentbook(request, pk):
     if request.method=='POST':
         book=Book.objects.get(id=pk)
@@ -388,7 +390,7 @@ def email(request):
     )   
 
 @login_required(login_url='login')
-def money_plus(request):
+def money_plus(request, message=''):
     money=UserMoney.objects.get(user=request.user)
     form=MoneyPlusForm(request.POST)
     if request.method=='POST':
@@ -398,4 +400,10 @@ def money_plus(request):
                 plus=0
             money.money+=plus
             money.save()
-        return redirect ("profile")
+            return redirect("profile")
+    return render (request, "money_plus.html",
+        context={  
+        "money": money,
+        "form": form,
+        "message": message,
+        }) 

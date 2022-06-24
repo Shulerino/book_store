@@ -24,4 +24,5 @@ urlpatterns = [
     path('duty/', views.duty, name='duty_list'),
     path('email/', views.email, name='email'),
     path('money_plus/', views.money_plus, name='money_plus'),
+    path('money_plus/<str:message>/', views.money_plus, name='money_plus'),
 ] + static (settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static (settings.STATIC_URL, document_root=settings.STATIC_ROOT)

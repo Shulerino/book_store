@@ -773,6 +773,163 @@ class TestProfile(TestCase):
         self.assertEqual(resp.status_code, 302)
         self.assertTrue(resp.url.startswith('/login/'))
 
+class TestWorker(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        worker = User.objects.create_user(
+            username='worker1', 
+            password='1q2w3e4C',
+            )
+        worker.save()
+        worker.user_permissions.add(Permission.objects.get(codename='add_book'))
+
+        user = User.objects.create_user(
+            username='user1', 
+            password='1q2w3e4C',
+            )
+        user.save()
+
+        Author.objects.create(
+            surname="surname",
+            name="name"
+        )
+
+        for num in range(15):
+            Book.objects.create(
+                title="title{0}".format(num+1),
+                author=Author.objects.get(id=1),
+                genre=Book.GENR_CORT[1][0],
+                language=Book.LANG_CORT[1][0],
+            )
+
+    def test_worker_get(self):
+        self.client.login(username='worker1', password='1q2w3e4C')
+        books=Book.objects.all()
+        resp1 = self.client.get('/worker/')
+        resp2 = self.client.get(reverse("worker"))
+        self.assertEqual(resp1.status_code, 200)
+        self.assertEqual(resp2.status_code, 200)
+        self.assertTemplateUsed(resp1, "worker.html")
+        resp=self.client.get(reverse("worker")+'?page=1')
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(resp.context["books"]), 10)
+        self.assertQuerysetEqual(resp.context['books'], books[:10])
+
+    def test_worker_get_wrong(self):
+        resp1=self.client.get(reverse("worker"))
+        self.assertEqual(resp1.status_code, 302)
+        self.assertTrue(resp1.url.startswith('/login/'))
+        self.client.login(username='user1', password='1q2w3e4C')
+        resp2=self.client.get(reverse("worker"))
+        self.assertEqual(resp2.status_code, 403)
+
+class TestBuyBook(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        user1 = User.objects.create_user(
+            username='user1', 
+            password='1q2w3e4C',
+            )
+        user1.save()
+        user1.user_permissions.add(Permission.objects.get(codename='add_buy'))
+
+        user2 = User.objects.create_user(
+            username='user2', 
+            password='1q2w3e4C',
+            )
+        user2.save()
+
+        Author.objects.create(
+            surname="surname",
+            name="name"
+        )
+
+        Book.objects.create(
+            title="title1",
+            author=Author.objects.get(id=1),
+            genre=Book.GENR_CORT[1][0],
+            language=Book.LANG_CORT[1][0],
+            price=100,
+            count=10
+        )
+
+        UserMoney.objects.create(
+            user=User.objects.get(id=1),
+            money=150
+        )
+
+    def test_buybook_post(self):
+        self.client.login(username='user1', password='1q2w3e4C')
+        resp=self.client.post("/buybook/1")
+        self.assertEqual(resp.status_code, 302)
+        self.assertTrue(resp.url.startswith('/profile/'))
+        self.assertTrue(Buy.objects.filter(user__username="user1").filter(book__title="title1").exists())
+        self.assertEqual(Book.objects.get(id=1).count, 9)
+        self.assertEqual(UserMoney.objects.get(user__username="user1").money, 50)
+        resp2=self.client.post(reverse("buybook", kwargs={'pk': 1}))
+        self.assertEqual(resp2.status_code, 302)
+        self.assertTrue(resp2.url.startswith(reverse('money_plus', args=["Недостаточно средств!"])))
+
+    def test_buybook_post_wrong(self):
+        resp1=self.client.post("/buybook/1")
+        self.assertEqual(resp1.status_code, 302)
+        self.assertTrue(resp1.url.startswith('/login/'))
+        self.client.login(username='user2', password='1q2w3e4C')
+        resp2=self.client.post(reverse("buybook", kwargs={'pk': 1}))
+        self.assertEqual(resp2.status_code, 403)
+
+class TestRentBook(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        user1 = User.objects.create_user(
+            username='user1', 
+            password='1q2w3e4C',
+            )
+        user1.save()
+        user1.user_permissions.add(Permission.objects.get(codename='add_rent'))
+
+        user2 = User.objects.create_user(
+            username='user2', 
+            password='1q2w3e4C',
+            )
+        user2.save()
+
+        Author.objects.create(
+            surname="surname",
+            name="name"
+        )
+
+        Book.objects.create(
+            title="title1",
+            author=Author.objects.get(id=1),
+            genre=Book.GENR_CORT[1][0],
+            language=Book.LANG_CORT[1][0],
+            count=10
+        )
+
+    def test_rentbook_post(self):
+        self.client.login(username='user1', password='1q2w3e4C')
+        resp=self.client.post("/rentbook/1")
+        self.assertEqual(resp.status_code, 302)
+        self.assertTrue(resp.url.startswith('/profile/'))
+        self.assertTrue(Rent.objects.filter(user__username="user1").filter(book__title="title1").exists())
+        self.assertEqual(Book.objects.get(id=1).count, 9)
+        
+    def test_rentbook_post_wrong(self):
+        resp1=self.client.post("/rentbook/1")
+        self.assertEqual(resp1.status_code, 302)
+        self.assertTrue(resp1.url.startswith('/login/'))
+        self.client.login(username='user2', password='1q2w3e4C')
+        resp2=self.client.post(reverse("rentbook", kwargs={'pk': 1}))
+        self.assertEqual(resp2.status_code, 403)
+
+
+
+        
+
+
+
+
 
 
 
