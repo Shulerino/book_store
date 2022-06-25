@@ -7,6 +7,15 @@ from bookstore_app.forms import *
 from django.contrib.auth.models import User, Group, Permission
 from unittest import mock
 from django.core.files import File
+from django.core.files.uploadedfile import SimpleUploadedFile
+import io
+from PIL import Image
+
+def create_image(name_image):
+    bts=io.BytesIO()
+    img=Image.new("RGB", (100, 100))
+    img.save(bts, 'jpeg')
+    return SimpleUploadedFile(name=name_image, content=bts.getvalue())
 
 
 class TestIndex(TestCase):
@@ -132,16 +141,15 @@ class TestIndex(TestCase):
 
 
 import tempfile
-import shutil
 @override_settings(MEDIA_ROOT=tempfile.mkdtemp())
 class TestBookDetailView(TestCase):
     @classmethod
     def setUpTestData(cls):
-        # image_list=[]
-        # for num in range(5):
-        #     image=mock.MagicMock(spec=File)
-        #     image.name="image{0}.jpg".format(num+1)
-        #     image_list.append(image)
+        image_list=[]
+        for num in range(5):
+            image=mock.MagicMock(spec=File)
+            image.name="image{0}.jpg".format(num+1)
+            image_list.append(image)
         
         for num in range(6):
             Author.objects.create(
@@ -152,7 +160,7 @@ class TestBookDetailView(TestCase):
         for num in range(5):
             Book.objects.create(
                 title="title{0}".format(num+1),
-                #image=image_list[num],
+                image=image_list[num],
                 summary="summary{0}".format(num+1),
                 author=Author.objects.get(id=num+1),
                 genre=Book.GENR_CORT[num+1][0],
@@ -171,7 +179,7 @@ class TestBookDetailView(TestCase):
         self.assertEqual(resp3.status_code, 200)
         self.assertTemplateUsed(resp1, "book_info.html")
         self.assertIn(book.title, resp1.context["book"].title)
-        #self.assertEqual(book.image, resp1.context["book"].image)
+        self.assertEqual(book.image, resp1.context["book"].image)
         self.assertIn(book.summary, resp1.context["book"].summary)
         self.assertEqual(book.author, resp1.context["book"].author)
         self.assertIn(book.genre, resp1.context["book"].genre)
@@ -179,9 +187,16 @@ class TestBookDetailView(TestCase):
         self.assertEqual(book.price, resp1.context["book"].price)
         self.assertEqual(book.count, resp1.context["book"].count)
 
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp())
 class TestBookEditView(TestCase):
     @classmethod
     def setUpTestData(cls):
+        image_list=[]
+        for num in range(5):
+            image=mock.MagicMock(spec=File)
+            image.name="image{0}.jpg".format(num+1)
+            image_list.append(image)
+
         user = User.objects.create_user(
             username='user1', 
             password='1q2w3e4C'
@@ -204,7 +219,7 @@ class TestBookEditView(TestCase):
         for num in range(5):
             Book.objects.create(
                 title="title{0}".format(num+1),
-                #image=image_list[num],
+                image=image_list[num],
                 summary="summary{0}".format(num+1),
                 author=Author.objects.get(id=num+1),
                 genre=Book.GENR_CORT[num+1][0],
@@ -224,7 +239,7 @@ class TestBookEditView(TestCase):
         self.assertEqual(resp3.status_code, 200)
         self.assertTemplateUsed(resp1, "book_edit.html")
         self.assertIn(book.title, resp1.context["book"].title)
-        #self.assertEqual(book.image, resp1.context["book"].image)
+        self.assertEqual(book.image, resp1.context["book"].image)
         self.assertIn(book.summary, resp1.context["book"].summary)
         self.assertEqual(book.author, resp1.context["book"].author)
         self.assertIn(book.genre, resp1.context["book"].genre)
@@ -241,6 +256,7 @@ class TestBookEditView(TestCase):
         self.client.login(username='worker1', password='1q2w3e4C')
         resp = self.client.post(reverse('book_update', kwargs={'pk': 1}), {
             "title": "new_title",
+            "image": create_image("test_image.jpg"),
             "summary": "new_summary",
             "author": 3,
             "genre": "Rasskaz",
@@ -252,6 +268,7 @@ class TestBookEditView(TestCase):
         book=Book.objects.get(id=1)
         author=Author.objects.get(id=3)
         self.assertEqual(book.title, "new_title")
+        self.assertEqual(book.image, "media/test_image.jpg")
         self.assertEqual(book.summary, "new_summary")
         self.assertEqual(book.author, author)
         self.assertEqual(book.genre, "Rasskaz")
@@ -299,6 +316,7 @@ class TestBookEditView(TestCase):
         self.assertFormError(resp, "form", "price", 'Слишком большое число')
         self.assertFormError(resp, "form", "count", 'Слишком большое число')
 
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp())
 class TestBookAddView(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -338,6 +356,7 @@ class TestBookAddView(TestCase):
         self.client.login(username='worker1', password='1q2w3e4C')
         resp = self.client.post(reverse('book_add'), {
             "title": "new_title",
+            "image": create_image("test_image.jpg"),
             "summary": "new_summary",
             "author": 3,
             "genre": "Rasskaz",
@@ -349,6 +368,7 @@ class TestBookAddView(TestCase):
         book=Book.objects.get(id=1)
         author=Author.objects.get(id=3)
         self.assertEqual(book.title, "new_title")
+        self.assertEqual(book.image, "media/test_image.jpg")
         self.assertEqual(book.summary, "new_summary")
         self.assertEqual(book.author, author)
         self.assertEqual(book.genre, "Rasskaz")
