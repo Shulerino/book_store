@@ -923,6 +923,346 @@ class TestRentBook(TestCase):
         resp2=self.client.post(reverse("rentbook", kwargs={'pk': 1}))
         self.assertEqual(resp2.status_code, 403)
 
+class TestBookDelete(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        worker = User.objects.create_user(
+            username='worker1', 
+            password='1q2w3e4C',
+            )
+        worker.save()
+        worker.user_permissions.add(Permission.objects.get(codename='delete_book'))
+
+        user = User.objects.create_user(
+            username='user1', 
+            password='1q2w3e4C',
+            )
+        user.save()
+
+        Author.objects.create(
+            surname="surname",
+            name="name"
+        )
+
+        for num in range(3):
+            Book.objects.create(
+                title="title{0}".format(num+1),
+                author=Author.objects.get(id=1),
+                genre=Book.GENR_CORT[1][0],
+                language=Book.LANG_CORT[1][0],
+            )
+    
+    def test_bookdelete_post(self):
+        self.client.login(username='worker1', password='1q2w3e4C')
+        self.assertTrue(Book.objects.filter(id=1).exists())
+        resp=self.client.post("/bookdelete/1")
+        self.assertEqual(resp.status_code, 302)
+        self.assertTrue(resp.url.startswith('/worker/'))
+        self.assertFalse(Book.objects.filter(id=1).exists())
+
+    def test_bookdelete_post_wrong(self):
+        resp1=self.client.post("/bookdelete/1")
+        self.assertEqual(resp1.status_code, 302)
+        self.assertTrue(resp1.url.startswith('/login/'))
+        self.client.login(username='user1', password='1q2w3e4C')
+        resp2=self.client.post(reverse("book_delete", kwargs={'pk': 1}))
+        self.assertEqual(resp2.status_code, 403)
+        
+class TestBuyDelete(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        user1 = User.objects.create_user(
+            username='user1', 
+            password='1q2w3e4C',
+            )
+        user1.save()
+        user1.user_permissions.add(Permission.objects.get(codename='delete_buy'))
+
+        user2 = User.objects.create_user(
+            username='user2', 
+            password='1q2w3e4C',
+            )
+        user2.save()
+
+        Author.objects.create(
+            surname="surname",
+            name="name"
+        )
+
+        for num in range(5):
+            Book.objects.create(
+                title="title{0}".format(num+1),
+                author=Author.objects.get(id=1),
+                genre=Book.GENR_CORT[1][0],
+                language=Book.LANG_CORT[1][0],
+            )
+
+        for num in range(3):
+            Buy.objects.create(
+                user=User.objects.get(id=1),
+                book=Book.objects.get(id=num+1)
+            )
+    
+    def test_buydelete_post(self):
+        self.client.login(username='user1', password='1q2w3e4C')
+        self.assertTrue(Buy.objects.filter(user__username="user1").filter(book__id=1).exists())
+        resp=self.client.post("/buydelete/1")
+        self.assertEqual(resp.status_code, 302)
+        self.assertTrue(resp.url.startswith('/profile/'))
+        self.assertFalse(Buy.objects.filter(user__username="user1").filter(book__id=1).exists())
+
+    def test_buydelete_post_wrong(self):
+        resp1=self.client.post("/buydelete/1")
+        self.assertEqual(resp1.status_code, 302)
+        self.assertTrue(resp1.url.startswith('/login/'))
+        self.client.login(username='user2', password='1q2w3e4C')
+        resp2=self.client.post(reverse("buydelete", kwargs={'pk': 1}))
+        self.assertEqual(resp2.status_code, 403)
+
+class TestBookReturn(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        user = User.objects.create_user(
+            username='user1', 
+            password='1q2w3e4C',
+            )
+        user.save()
+
+        Author.objects.create(
+            surname="surname",
+            name="name"
+        )
+
+        for num in range(5):
+            Book.objects.create(
+                title="title{0}".format(num+1),
+                author=Author.objects.get(id=1),
+                genre=Book.GENR_CORT[1][0],
+                language=Book.LANG_CORT[1][0],
+                count=10,
+            )
+
+        for num in range(3):
+            Rent.objects.create(
+                user=User.objects.get(id=1),
+                book=Book.objects.get(id=num+1)
+            )
+
+    def test_bookreturn_post(self):
+        self.client.login(username='user1', password='1q2w3e4C')
+        self.assertTrue(Rent.objects.filter(user__username="user1").filter(book__id=1).exists())
+        resp=self.client.post("/bookreturn/1")
+        self.assertEqual(resp.status_code, 302)
+        self.assertTrue(resp.url.startswith('/profile/'))
+        self.assertFalse(Rent.objects.filter(user__username="user1").filter(book__id=1).exists())
+        self.assertEqual(Book.objects.get(id=1).count, 11)
+
+    def test_bookreturn_post_wrong(self):
+        resp1=self.client.post("/bookreturn/1")
+        self.assertEqual(resp1.status_code, 302)
+        self.assertTrue(resp1.url.startswith('/login/'))
+
+class TestDuty(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        worker = User.objects.create_user(
+            username='worker1', 
+            password='1q2w3e4C',
+            )
+        worker.save()
+        worker.user_permissions.add(Permission.objects.get(codename='add_book'))
+
+        user1 = User.objects.create_user(
+            username='user1', 
+            password='1q2w3e4C',
+            )
+        user1.save()
+
+        user2 = User.objects.create_user(
+            username='user2', 
+            password='1q2w3e4C',
+            )
+        user2.save()
+
+        Author.objects.create(
+            surname="surname",
+            name="name"
+        )
+
+        for num in range(10):
+            Book.objects.create(
+                title="title{0}".format(num+1),
+                author=Author.objects.get(id=1),
+                genre=Book.GENR_CORT[1][0],
+                language=Book.LANG_CORT[1][0],
+                count=10,
+            )
+
+        for num in range(3):
+            Rent.objects.create(
+                user=User.objects.get(id=2),
+                book=Book.objects.get(id=num+1)
+            )
+            Rent.objects.create(
+                user=User.objects.get(id=3),
+                book=Book.objects.get(id=num+5)
+            )
+    
+    def test_bookreturn_get(self):
+        self.client.login(username='worker1', password='1q2w3e4C')
+        resp1=self.client.get("/duty/")
+        self.assertEqual(resp1.status_code, 200)
+        resp2=self.client.get(reverse("duty_list"))
+        self.assertEqual(resp2.status_code, 200)
+        self.assertTemplateUsed(resp1, "duty_list.html")
+        self.assertQuerysetEqual(Rent.objects.filter(user__username="user1"), resp1.context["dictionary"]["user1"], ordered=False)
+        self.assertQuerysetEqual(Rent.objects.filter(user__username="user2"), resp1.context["dictionary"]["user2"], ordered=False)
+
+    def test_bookreturn_get_wrong(self):
+        resp1=self.client.get("/duty/")
+        self.assertEqual(resp1.status_code, 302)
+        self.assertTrue(resp1.url.startswith('/login/'))
+        self.client.login(username='user1', password='1q2w3e4C')
+        resp2=self.client.get(reverse("duty_list"))
+        self.assertEqual(resp2.status_code, 403)
+
+class TestEmail(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        worker = User.objects.create_user(
+            username='worker1', 
+            password='1q2w3e4C',
+            email='worker1@mail.ru'
+            )
+        worker.save()
+        worker.user_permissions.add(Permission.objects.get(codename='add_book'))
+
+        user1 = User.objects.create_user(
+            username='user1', 
+            password='1q2w3e4C',
+            email='user1@mail.ru'
+            )
+        user1.save()
+
+        user2 = User.objects.create_user(
+            username='user2', 
+            password='1q2w3e4C',
+            email='user2@mail.ru'
+            )
+        user2.save()
+
+    def test_email_get(self):
+        self.client.login(username='worker1', password='1q2w3e4C')
+        resp1=self.client.get("/email/")
+        self.assertEqual(resp1.status_code, 200)
+        resp2=self.client.get(reverse("email"))
+        self.assertEqual(resp2.status_code, 200)
+        self.assertTemplateUsed(resp1, "email.html")
+
+    def test_email_get_wrong(self):
+        resp1=self.client.get("/email/")
+        self.assertEqual(resp1.status_code, 302)
+        self.assertTrue(resp1.url.startswith('/login/'))
+        self.client.login(username='user1', password='1q2w3e4C')
+        resp2=self.client.get(reverse("email"))
+        self.assertEqual(resp2.status_code, 403)
+
+    def test_email_post_correct(self):
+        self.client.login(username='worker1', password='1q2w3e4C')
+        resp=self.client.post(reverse("email"), {
+            "address": [2, 3],
+            "subject": "test_subject",
+            "message": "test_message"
+        })
+        self.assertEqual(resp.status_code, 200)
+        messages=list(resp.context["messages"])
+        self.assertEqual(str(messages[0]), "Сообщение отправлено!")
+
+    def test_email_post_incorrect(self):
+        self.client.login(username='worker1', password='1q2w3e4C')
+        resp=self.client.post(reverse("email"), {
+            "address": [2],
+            "subject": "subject\nInjection Test",
+            "message": "test_message"
+        })
+        self.assertEqual(resp.status_code, 200)
+        messages=list(resp.context["messages"])
+        self.assertEqual(str(messages[0]), "Ошибка ввода!")
+
+    def test_email_post_errors(self):
+        self.client.login(username='worker1', password='1q2w3e4C')
+        resp=self.client.post(reverse("email"), {
+            "subject": "subjectsubjectsubjectsubjectsubjectsubjectsubjectsubjectsubjectsubjectsubjectsubjectsubject",
+            "message": "test_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_messagetest_message"
+        })
+        self.assertFormError(resp, "form", "address", 'Поле обязательно для заполнения')
+        self.assertFormError(resp, "form", "subject", 'Слишком длинная тема')
+        self.assertFormError(resp, "form", "message", 'Слишком большое сообщение')
+
+class TestMoneyPlus(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        user1 = User.objects.create_user(
+            username='user1', 
+            password='1q2w3e4C',
+            )
+        user1.save()
+        user1.user_permissions.add(Permission.objects.get(codename='add_usermoney'))
+
+        user2 = User.objects.create_user(
+            username='user2', 
+            password='1q2w3e4C',
+            )
+        user2.save()
+
+        UserMoney.objects.create(
+            user=User.objects.get(id=1),
+            money=150
+        )
+
+    def test_moneyplus_get(self):
+        self.client.login(username='user1', password='1q2w3e4C')
+        resp1=self.client.get("/money_plus/")
+        self.assertEqual(resp1.status_code, 200)
+        resp2=self.client.get(reverse("money_plus"))
+        self.assertEqual(resp2.status_code, 200)
+        self.assertTemplateUsed(resp1, "money_plus.html")
+
+    def test_moneyplus_get_wrong(self):
+        resp1=self.client.get("/money_plus/")
+        self.assertEqual(resp1.status_code, 302)
+        self.assertTrue(resp1.url.startswith('/login/'))
+        self.client.login(username='user2', password='1q2w3e4C')
+        resp2=self.client.get(reverse("money_plus"))
+        self.assertEqual(resp2.status_code, 403)
+
+    def test_moneyplus_post(self):
+        self.client.login(username='user1', password='1q2w3e4C')
+        resp=self.client.post(reverse("money_plus"), {
+            "plus": 100
+        })
+        self.assertEqual(resp.status_code, 302)
+        self.assertTrue(resp.url.startswith('/profile/'))
+        self.assertEqual(UserMoney.objects.get(id=1).money, 250)
+
+    def test_moneyplus_post_errors(self):
+        self.client.login(username='user1', password='1q2w3e4C')
+        resp1=self.client.post(reverse("money_plus"), {
+            "plus": -5000
+        })
+        self.assertFormError(resp1, "form", "plus", 'Некорректное значение')
+        resp2=self.client.post(reverse("money_plus"), {
+            "plus": 5147483647
+        })
+        self.assertFormError(resp2, "form", "plus", 'Слишком большое число')
+
+
+    
+
+    
+
+
+
 
 
         

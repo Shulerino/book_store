@@ -333,6 +333,7 @@ def bookdelete(request, pk):
         return redirect ("worker")
 
 @login_required(login_url='login')
+@permission_required('bookstore_app.delete_buy', raise_exception=True)
 def buydelete(request, pk):
     if request.method=='POST':
         Buy.objects.get(id=pk).delete()
@@ -349,6 +350,7 @@ def bookreturn(request, pk):
         return redirect ("profile")
 
 @login_required(login_url='login')
+@permission_required('bookstore_app.add_book', raise_exception=True)
 def duty(request):
     dictionary={}
     user_list=Rent.objects.all().values('user', 'user__username').distinct()
@@ -363,6 +365,7 @@ def duty(request):
         })
         
 @login_required(login_url='login')
+@permission_required('bookstore_app.add_book', raise_exception=True)
 def email(request):
     form=EmailForm(request.POST)
     if request.method=='POST':
@@ -390,6 +393,7 @@ def email(request):
     )   
 
 @login_required(login_url='login')
+@permission_required('bookstore_app.add_usermoney', raise_exception=True)
 def money_plus(request, message=''):
     money=UserMoney.objects.get(user=request.user)
     form=MoneyPlusForm(request.POST)
