@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 from pathlib import Path
 from re import TEMPLATE
 from telnetlib import AUTHENTICATION
+from os import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,13 +23,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure--&=duco%lv7+j!oe04os)bhq$0(89ci0(y*k%b#ayzdjc3q7gm'
+#SECRET_KEY = 'django-insecure--&=duco%lv7+j!oe04os)bhq$0(89ci0(y*k%b#ayzdjc3q7gm'
+
+#SECRET_KEY = environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+#DEBUG = True
 
-ALLOWED_HOSTS = []
+SECRET_KEY = environ.get('DJANGO_SECRET_KEY', 'cg#p$g+j9tax!#a3cup@1$8obt2_+&k3q+pmu)5%asj6yjpkag')
 
+DEBUG = bool(environ.get('DJANGO_DEBUG', True))
+
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0"]
 
 # Application definition
 
@@ -120,8 +126,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
-STATIC_ROOT = BASE_DIR / 'static/'
-MEDIA_ROOT = BASE_DIR / 'media/'
+STATIC_ROOT = BASE_DIR / 'staticfiles/'
+MEDIA_ROOT = BASE_DIR / 'mediafiles/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
@@ -132,6 +138,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 TEMPLATE_CONTEXT_PROCESSORS = 'django.core.context_processors.request'
 
-CSRF_TRUSTED_ORIGINS = ["http://localhost:1337"]
+CSRF_TRUSTED_ORIGINS = ["http://0.0.0.0:8080"]
 
 AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.AllowAllUsersModelBackend']

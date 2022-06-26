@@ -1,5 +1,5 @@
-django
-tzdata
-Pillow
-gunicorn
-psycopg-binary
+django==4.0.4
+tzdata==2022.1
+Pillow==9.1.1
+gunicorn==20.1.0
+psycopg-binary==3.0
