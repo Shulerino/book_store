@@ -15,6 +15,6 @@ services:
    - ./static:/code/staticfiles
    - ./media:/code/mediafiles
   ports:
-   - 8080:80
+   - 80:80
   depends_on:
    - web

@@ -135,6 +135,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 TEMPLATE_CONTEXT_PROCESSORS = 'django.core.context_processors.request'
 
-CSRF_TRUSTED_ORIGINS = ["http://0.0.0.0:8080"]
+CSRF_TRUSTED_ORIGINS = ["http://0.0.0.0:80"]
 
 AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.AllowAllUsersModelBackend']
