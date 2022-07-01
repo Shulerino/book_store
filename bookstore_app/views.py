@@ -238,7 +238,7 @@ class PasswordChange(LoginRequiredMixin, PasswordChangeView):
 
 @login_required(login_url='login')
 def updateuser(request):
-    user=request.user 
+    user=request.user
     form=UserUpdateForm(initial={
             'first_name': user.first_name,
             'last_name': user.last_name,
@@ -246,6 +246,8 @@ def updateuser(request):
         })
     
     if request.method=='POST':
+        user.email=""
+        user.save()
         form=UserUpdateForm(request.POST)
         if form.is_valid():
             user.first_name=form.cleaned_data["first_name"]

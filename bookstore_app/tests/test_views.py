@@ -629,7 +629,7 @@ class TestPasswordChange(TestCase):
         })
         self.assertEqual(resp2.status_code, 200)
 
-class TestUpdate_user(TestCase):
+class TestUpdateUser(TestCase):
     @classmethod
     def setUpTestData(cls):
         user = User.objects.create_user(
